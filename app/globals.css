@@ -1,26 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #e5e5e5;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --color-background: #000000;
+  --color-foreground: #e5e5e5;
+  --font-sans: 'Inter', sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-custom-black: #000000;
+  --color-custom-navy: #14213d;
+  --color-custom-amber: #fca311;
+  --color-custom-gray: #e5e5e5;
+  --color-custom-white: #ffffff;
+
+  /* Extra colors from DESIGN.md */
+  --color-surface-dim: #121414;
+  --color-surface-bright: #38393a;
+  --color-surface-container-lowest: #0d0f0f;
+  --color-surface-container-low: #1a1c1c;
+  --color-surface-container: #1e2020;
+  --color-surface-container-high: #282a2b;
+  --color-surface-container-highest: #333535;
+
+  --radius-3xl: 24px;
+  --radius-2xl: 16px;
+  --radius-xl: 12px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #14213d;
+  border-radius: 4px;
+  border: 1px solid rgba(252, 163, 17, 0.1);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #fca311;
 }
