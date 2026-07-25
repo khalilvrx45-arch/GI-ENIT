@@ -34,7 +34,7 @@ export default function SignupPage() {
           data: {
             first_name: firstName,
             last_name: lastName,
-            role: "membre", // Default role for new signups
+            role: "admin", // CHANGÉ TEMPORAIREMENT EN ADMIN
           }
         }
       });
