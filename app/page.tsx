@@ -191,22 +191,22 @@ export default function HomePage() {
   // Developers
   const developers = [
     {
-      name: "Khalil Sibi",
-      role: "Full-Stack Tech Lead",
+      name: "Alexandre Martin",
+      role: "Lead Full-Stack Architect",
       linkedIn: "https://linkedin.com",
-      avatar: "KS"
+      avatar: "AM"
     },
     {
-      name: "Yassine Dridi",
+      name: "Sarra Ben Ali",
       role: "UI/UX Designer & Frontend",
       linkedIn: "https://linkedin.com",
-      avatar: "YD"
+      avatar: "SB"
     },
     {
-      name: "Manel Gharbi",
-      role: "Supply Chain Advisor & Dev",
+      name: "Karim Tounsi",
+      role: "Développeur Full-Stack",
       linkedIn: "https://linkedin.com",
-      avatar: "MG"
+      avatar: "KT"
     }
   ];
 
