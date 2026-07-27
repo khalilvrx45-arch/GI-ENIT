@@ -23,26 +23,34 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // 1. Sign in with email/password
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
+      if (!data.user) throw new Error("Utilisateur introuvable.");
 
-      // Assuming role is stored in user metadata or a separate table.
-      // For now, redirecting based on a hypothetical 'role' in user_metadata, 
-      // defaulting to '/dashboard' for members.
-      const role = data.user?.user_metadata?.role || 'membre';
-      
-      if (role === 'admin') {
-        router.push('/admin');
-      } else if (role === 'bureau') {
-        router.push('/bureau');
+      // 2. Fetch the role from the profiles table (source of truth)
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      // Determine role — fallback to user_metadata if profile not found
+      const role = profile?.role || data.user.user_metadata?.role || "membre_actif";
+
+      // 3. Redirect based on role
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "membre_bureau" || role === "bureau") {
+        router.push("/bureau");
       } else {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
-      
+
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue lors de la connexion.");
     } finally {
@@ -120,9 +128,6 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">Mot de passe</label>
-                <button type="button" className="text-xs text-[#888] hover:text-[#fff] transition-colors">
-                  Oublié ?
-                </button>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
