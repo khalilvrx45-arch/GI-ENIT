@@ -165,7 +165,7 @@ export default function LoginPage() {
             </motion.button>
           </form>
           
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center pt-2 border-t border-[#333535]">
             <p className="text-xs text-[#666]">
               Problème de connexion ? <br/> Contactez l'administrateur du système.
             </p>
