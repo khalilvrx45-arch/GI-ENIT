@@ -361,8 +361,8 @@ export default function AdminDashboardPage() {
   const countPending = invitations.filter((i) => i.status === "pending").length;
   const countExpired = invitations.filter((i) => i.status === "expired").length;
 
-  const countActifs = members.filter((m) => m.role === "membre_actif" || m.role === "membre").length;
-  const countBureau = members.filter((m) => m.role === "membre_bureau" || m.role === "bureau").length;
+  const countActifs = members.filter((m) => m.role === "membre_actif").length;
+  const countBureau = members.filter((m) => m.role === "membre_bureau").length;
   const countAdmins = members.filter((m) => m.role === "admin").length;
 
   const filteredMembers = members.filter(
