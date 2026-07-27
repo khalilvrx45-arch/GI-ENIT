@@ -1,104 +1,145 @@
-# CGI ENIT — Site Web du Club Génie Industriel
+# CGI ENIT — Plateforme du Club Génie Industriel
 
-Plateforme officielle et site web du Club Génie Industriel de l'ENIT.
+Plateforme officielle du **Club Génie Industriel de l'ENIT** (École Nationale d'Ingénieurs de Tunis). 
+Le projet comprend le site vitrine du club, un espace membre sécurisé et un terminal d'administration dédié (*Kinetic Forge*).
 
 🔗 **Production** : [gi-enit.vercel.app](https://gi-enit.vercel.app)
 
-## 🚀 Stack technique
+---
 
-- **Framework** : Next.js (App Router)
+## 🛠️ Stack Technique
+
+- **Framework Frontend** : Next.js (App Router)
 - **Langage** : TypeScript
-- **Styling** : Tailwind CSS
-- **Animations** : Framer Motion
+- **Backend-as-a-Service (BaaS)** : Supabase (PostgreSQL, Row Level Security, Auth, SSR Cookies)
+- **Design System Admin** : "Kinetic Forge" (Industrial Tech Edge — Fond sombre `#121414`, `#14213d`, accents ambre `#fca311`, polices monospacées)
+- **Styling** : Vanilla CSS & Tailwind CSS
+- **Iconographie** : Lucide React
 - **Déploiement** : Vercel
 
-## 🧑‍💻 Installation en local
+---
 
-1. **Cloner le repo**
+## 📱 Cartographie des Pages et Espaces
+
+| Route | Rôle & Description |
+|---|---|
+| `/` | **Page d'accueil publique** : Vitrine du club, présentation du bureau, événements, témoignages et footer. |
+| `/login` | **Page de connexion** : Authentification sécurisée (l'inscription publique `/signup` a été supprimée). |
+| `/invite/[token]` | **Page d'intégration sur invitation** : Formulaire sécurisé permettant à un membre invité de choisir son mot de passe et finaliser son profil. |
+| `/admin` | **Terminal d'administration** : Interface complète réservée aux Admins (Invitations, Membres, KPIs et paramétrages). |
+| `/dashboard` | **Espace Membre Actif** : Tableau de bord pour les membres du club. |
+| `/bureau` | **Espace Membre du Bureau** : Interface dédiée aux membres de la direction du club. |
+
+---
+
+## ⚡ Fonctionnalités Clés Implémentées
+
+### 🔐 1. Système d'Invitation Exclusive (Accès Sécurisé)
+- **Flux sur invitation tokenisée** : Les comptes ne peuvent être créés que via des jetons d'invitation uniques (`UUID`).
+- **Protection par RLS** : Sécurisation stricte au niveau de la base de données via les politiques Row Level Security de Supabase.
+
+### 🛡️ 2. Terminal Admin (*Kinetic Forge Design*)
+- **Gestion des Invitations** :
+  - Envoi d'invitations avec attribution du rôle (*Active Member* ou *Board Member*) et durée de validité (3, 7 ou 14 jours).
+  - Bouton **`LINK`** : Copie instantanée du lien d'invitation unique dans le presse-papier pour envoi direct.
+  - Suivi des statuts (*Accepted*, *Pending*, *Expired*, *Cancelled*).
+  - Réexpédition, annulation et suppression définitive des invitations inactives des archives.
+- **Gestion des Membres** :
+  - Recherche dynamique en temps réel par nom, email ou rôle.
+  - Modification instantanée du rôle d'un membre (*Membre Actif*, *Membre Bureau*, *Admin*).
+  - Suppression de membre avec modale de confirmation.
+- **UI / UX** :
+  - Cartes KPI avec jauges de progression mécaniques.
+  - Système de notifications Toast et modales de confirmation réutilisables.
+
+---
+
+## 🗄️ Structure de la Base de Données (Supabase)
+
+La base de données repose sur 2 tables principales avec Row Level Security (RLS) :
+
+1. **`public.profiles`** :
+   - `id` (UUID, clé primaire liée à `auth.users`)
+   - `email` (TEXT)
+   - `first_name` & `last_name` (TEXT)
+   - `role` (`'admin'`, `'membre_bureau'`, `'membre_actif'`)
+   - `created_at` (TIMESTAMPTZ)
+
+2. **`public.invitations`** :
+   - `id` (UUID, clé primaire)
+   - `email` (TEXT)
+   - `role` (`'membre_bureau'`, `'membre_actif'`)
+   - `token` (UUID unique)
+   - `status` (`'pending'`, `'accepted'`, `'expired'`, `'cancelled'`)
+   - `expires_at` & `created_at` (TIMESTAMPTZ)
+   - `created_by` (UUID)
+
+---
+
+## 📁 Architecture des Fichiers
+
+```
+├── app/
+│   ├── (auth)/login/       → Connexion
+│   ├── admin/              → Terminal Administrateur (Kinetic Forge)
+│   ├── api/admin/invite/   → Route API serveur pour la création d'invitations
+│   ├── bureau/             → Espace Membre du Bureau
+│   ├── dashboard/          → Espace Membre Actif
+│   ├── invite/[token]/     → Inscription sécurisée par jeton
+│   └── page.tsx            → Page d'accueil officielle
+├── components/
+│   ├── Navbar.tsx          → Barre de navigation principale
+│   ├── Footer.tsx          → Pied de page
+│   └── ui/                 → Composants UI (Toast, ConfirmModal, BottomNav, RoleBadge, Sidebar, DataTable)
+├── lib/
+│   └── supabase/           → Client navigateur (client.ts) et serveur SSR (server.ts)
+├── supabase_setup.sql      → Script SQL d'initialisation et politiques RLS
+└── README.md               → Documentation du projet
+```
+
+---
+
+## 🔑 Configuration de l'Environnement (`.env.local`)
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon_publique
+
+# Optionnel (pour envoi automatique via Supabase Auth Admin)
+SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_secrete
+```
+
+---
+
+## 🧑‍💻 Déploiement et Démarrage Local
+
+1. **Cloner et installer les dépendances**
    ```bash
    git clone https://github.com/khalilvrx45-arch/GI-ENIT.git
    cd GI-ENIT
-   ```
-
-2. **Se placer sur la branche `dev`** (c'est ici que tout le monde travaille)
-   ```bash
-   git checkout dev
-   git pull origin dev
-   ```
-
-3. **Installer les dépendances**
-   ```bash
    npm install
    ```
 
-4. **Lancer le serveur de développement**
+2. **Lancer le serveur de développement**
    ```bash
    npm run dev
    ```
-   Le site est accessible sur [http://localhost:3000](http://localhost:3000)
+   Accès local : [http://localhost:3000](http://localhost:3000)
 
-## 🌳 Workflow Git — IMPORTANT, à lire avant de contribuer
-
-On travaille avec deux branches principales :
-
-| Branche | Rôle |
-|---|---|
-| `main` | Branche de **production**. Toujours stable, déployée automatiquement sur [gi-enit.vercel.app](https://gi-enit.vercel.app). **Ne jamais push directement dessus.** |
-| `dev` | Branche de **développement**. Tout le monde travaille ici (ou sur des sous-branches créées à partir de `dev`). |
-
-### Processus pour contribuer
-
-1. **Toujours partir de `dev` à jour**
+3. **Mettre à jour le schéma Supabase**
    ```bash
-   git checkout dev
-   git pull origin dev
+   npx supabase@latest db push
    ```
 
-2. *(Optionnel mais recommandé)* Créer une sous-branche pour ta fonctionnalité
-   ```bash
-   git checkout -b feature/nom-de-ta-feature
-   ```
+---
 
-3. **Coder, commit, push**
-   ```bash
-   git add .
-   git commit -m "feat: description claire de ce que tu as fait"
-   git push origin dev
-   ```
-   *(ou `git push origin feature/nom-de-ta-feature` si tu as créé une sous-branche)*
+## 🌳 Workflow Git
 
-4. **Tester sur le lien de preview**
-   Chaque push déclenche un déploiement automatique sur Vercel (preview). Le lien est visible :
-   - Dans l'onglet **Deployments** du repo GitHub
-   - Ou en commentaire automatique de Vercel si tu as ouvert une Pull Request
+- **`main`** : Branche de **production** (déploiement automatique sur Vercel).
+- **`dev`** : Branche principale de **développement**.
 
-5. **Ouvrir une Pull Request vers `main`** quand `dev` est stable et prêt à être mis en ligne
-   - Va sur GitHub → Pull Requests → New Pull Request → base: `main` ← compare: `dev`
-   - Attends que le check Vercel passe au vert
-   - Fais relire/approuver par un autre membre si possible
-   - Merge → `main` est automatiquement redéployé en production
-
-### Règles à respecter
-
-- ❌ Ne jamais push directement sur `main`
-- ✅ Toujours passer par une Pull Request pour merger dans `main`
-- ✅ Tester sur le lien de preview avant de merger
-- ✅ Des messages de commit clairs (`feat:`, `fix:`, `refactor:`, `docs:`...)
-
-## 📁 Structure du projet
-
-```
-app/           → Pages et routes (App Router Next.js)
-components/    → Composants réutilisables
-public/        → Assets statiques (images, logos...)
-```
-
-## 🤝 Contribuer
-
-1. Récupère la branche `dev`
-2. Suis le workflow décrit ci-dessus
-3. En cas de doute, demande avant de push sur `dev` directement — préfère une sous-branche + PR vers `dev` si le changement est gros
+---
 
 ## 📬 Contact
 
-Pour toute question, contacte l'équipe technique du Club Génie Industriel — ENIT.
+Projet développé pour le **Club Génie Industriel — ENIT**.

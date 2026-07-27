@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Mail,
   Users,
@@ -24,8 +23,8 @@ import {
   Download,
   Filter,
   UserPlus,
-  ChevronLeft,
-  ChevronRight,
+  Copy,
+  Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -67,6 +66,7 @@ export default function AdminDashboardPage() {
   const [inviteRole, setInviteRole] = useState<"membre_actif" | "membre_bureau">("membre_actif");
   const [inviteDuration, setInviteDuration] = useState<number>(7);
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
   // Member search
   const [memberSearch, setMemberSearch] = useState("");
@@ -165,7 +165,7 @@ export default function AdminDashboardPage() {
         setMembers(memberData);
       }
     } catch (err) {
-      // Ignore if database tables are initialising
+      // Database loading
     } finally {
       setLoadingData(false);
     }
@@ -188,52 +188,32 @@ export default function AdminDashboardPage() {
 
     setSendingInvite(true);
     try {
-      const existingMember = members.find(
-        (m) => m.email.toLowerCase() === inviteEmail.trim().toLowerCase()
-      );
-      if (existingMember) {
-        addToast("error", `L'email ${inviteEmail} appartient déjà à un membre du club.`);
-        setSendingInvite(false);
-        return;
-      }
-
-      const existingInvite = invitations.find(
-        (i) =>
-          i.email.toLowerCase() === inviteEmail.trim().toLowerCase() &&
-          i.status === "pending" &&
-          new Date(i.expires_at) > new Date()
-      );
-
-      if (existingInvite) {
-        addToast("error", `Une invitation active existe déjà pour ${inviteEmail}.`);
-        setSendingInvite(false);
-        return;
-      }
-
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + inviteDuration);
-      const newToken = crypto.randomUUID();
-
-      const { error: insertErr } = await supabase.from("invitations").insert({
-        email: inviteEmail.trim().toLowerCase(),
-        role: inviteRole,
-        token: newToken,
-        status: "pending",
-        expires_at: expiresAt.toISOString(),
-        created_by: currentUser?.id,
+      const response = await fetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          role: inviteRole,
+          duration: inviteDuration,
+          created_by: currentUser?.id,
+        }),
       });
 
-      if (insertErr) throw new Error(insertErr.message);
+      const result = await response.json();
 
-      try {
-        await supabase.auth.admin.inviteUserByEmail(inviteEmail.trim().toLowerCase(), {
-          redirectTo: `${window.location.origin}/invite/${newToken}`,
-        });
-      } catch (err) {
-        // Fallback to custom token link
+      if (!response.ok) {
+        throw new Error(result.error || "Erreur lors de la création de l'invitation.");
       }
 
-      addToast("success", `Invitation envoyée avec succès à ${inviteEmail}`);
+      if (result.emailSent) {
+        addToast("success", `Invitation envoyée par email à ${inviteEmail}`);
+      } else {
+        addToast(
+          "success",
+          `Invitation créée ! Lien : ${result.inviteLink}`
+        );
+      }
+
       setInviteEmail("");
       fetchData();
     } catch (err: any) {
@@ -243,6 +223,14 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleCopyLink = (token: string) => {
+    const link = `${window.location.origin}/invite/${token}`;
+    navigator.clipboard.writeText(link);
+    setCopiedToken(token);
+    addToast("info", "Lien d'invitation copié dans le presse-papier !");
+    setTimeout(() => setCopiedToken(null), 3000);
+  };
+
   const handleResendInvite = async (invitation: InvitationRecord) => {
     try {
       await supabase
@@ -250,25 +238,24 @@ export default function AdminDashboardPage() {
         .update({ status: "cancelled" })
         .eq("id", invitation.id);
 
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-      const newToken = crypto.randomUUID();
-
-      const { error: insertErr } = await supabase.from("invitations").insert({
-        email: invitation.email,
-        role: invitation.role,
-        token: newToken,
-        status: "pending",
-        expires_at: expiresAt.toISOString(),
-        created_by: currentUser?.id,
+      const response = await fetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: invitation.email,
+          role: invitation.role,
+          duration: 7,
+          created_by: currentUser?.id,
+        }),
       });
 
-      if (insertErr) throw insertErr;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
 
-      addToast("success", `Invitation renvoyée à ${invitation.email}`);
+      addToast("success", `Nouvelle invitation créée pour ${invitation.email}`);
       fetchData();
     } catch (err: any) {
-      addToast("error", err.message || "Erreur lors de la réexpéditon.");
+      addToast("error", err.message || "Erreur lors de la réexpédition.");
     }
   };
 
@@ -290,6 +277,32 @@ export default function AdminDashboardPage() {
           fetchData();
         } catch (err: any) {
           addToast("error", err.message || "Erreur lors de l'annulation.");
+        }
+      },
+    });
+  };
+
+  const handleDeleteInvite = (invitation: InvitationRecord) => {
+    setModalConfig({
+      isOpen: true,
+      title: "Supprimer l'invitation",
+      message: `Voulez-vous supprimer définitivement l'invitation pour ${invitation.email} ?`,
+      confirmText: "Supprimer",
+      variant: "danger",
+      onConfirm: async () => {
+        setModalConfig((prev) => ({ ...prev, isOpen: false }));
+        try {
+          const { error } = await supabase
+            .from("invitations")
+            .delete()
+            .eq("id", invitation.id);
+
+          if (error) throw error;
+
+          addToast("info", "Invitation supprimée des archives.");
+          fetchData();
+        } catch (err: any) {
+          addToast("error", err.message || "Erreur lors de la suppression.");
         }
       },
     });
@@ -690,33 +703,56 @@ export default function AdminDashboardPage() {
                                   })}
                             </td>
                             <td className="py-3.5 px-4 text-right">
-                              {row.status === "pending" && (
-                                <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-2">
+                                {row.status === "pending" && (
+                                  <>
+                                    <button
+                                      onClick={() => handleCopyLink(row.token)}
+                                      className="px-2 py-1 rounded border border-[#333535] hover:border-[#fca311] text-[10px] text-[#fca311] font-bold uppercase transition-colors flex items-center gap-1"
+                                      title="Copier le lien d'invitation"
+                                    >
+                                      {copiedToken === row.token ? (
+                                        <Check className="w-3 h-3 text-green-400" />
+                                      ) : (
+                                        <Copy className="w-3 h-3" />
+                                      )}
+                                      <span>{copiedToken === row.token ? "COPIED" : "LINK"}</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleResendInvite(row)}
+                                      className="px-2 py-1 rounded border border-[#333535] hover:border-[#fca311] text-[10px] text-white font-bold uppercase transition-colors"
+                                    >
+                                      RESEND
+                                    </button>
+                                    <button
+                                      onClick={() => handleCancelInvite(row)}
+                                      className="px-2 py-1 text-[10px] text-red-400 hover:underline uppercase"
+                                    >
+                                      CANCEL
+                                    </button>
+                                  </>
+                                )}
+                                {row.status === "expired" && (
                                   <button
                                     onClick={() => handleResendInvite(row)}
                                     className="px-2 py-1 rounded border border-[#333535] hover:border-[#fca311] text-[10px] text-white font-bold uppercase transition-colors"
                                   >
                                     RESEND
                                   </button>
+                                )}
+                                {row.status !== "accepted" && (
                                   <button
-                                    onClick={() => handleCancelInvite(row)}
-                                    className="px-2 py-1 text-[10px] text-red-400 hover:underline uppercase"
+                                    onClick={() => handleDeleteInvite(row)}
+                                    className="p-1 rounded text-[#888] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                    title="Supprimer l'invitation"
                                   >
-                                    CANCEL
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </button>
-                                </div>
-                              )}
-                              {row.status === "expired" && (
-                                <button
-                                  onClick={() => handleResendInvite(row)}
-                                  className="px-2 py-1 rounded border border-[#333535] hover:border-[#fca311] text-[10px] text-white font-bold uppercase transition-colors"
-                                >
-                                  RESEND
-                                </button>
-                              )}
-                              {(row.status === "accepted" || row.status === "cancelled") && (
-                                <span className="text-[10px] text-[#555] italic">No actions</span>
-                              )}
+                                )}
+                                {row.status === "accepted" && (
+                                  <span className="text-[10px] text-[#555] italic">No actions</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -904,7 +940,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* TAB 3, 4, 5: COMING SOON (Matching Stitch Preview) */}
+          {/* TAB 3, 4, 5: COMING SOON */}
           {["contenu", "temoignages", "parametres"].includes(activeTab) && (
             <div className="py-12 flex items-center justify-center">
               <div className="bg-[#14213d] border border-[#333535] rounded-2xl p-10 text-center max-w-lg w-full shadow-2xl space-y-6 font-mono">
