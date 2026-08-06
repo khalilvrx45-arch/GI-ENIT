@@ -1,0 +1,3919 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.github/
+  workflows/
+    ci.yml
+app/
+  login/
+    page.tsx
+  membre/
+    annonces/
+      page.tsx
+    annuaire/
+      page.tsx
+    calendrier/
+      page.tsx
+    classement/
+      page.tsx
+    evenements/
+      [id]/
+        page.tsx
+      page.tsx
+    formations/
+      page.tsx
+    layout/
+      BottomNav.tsx
+      Sidebar.tsx
+      TemplateTransition.tsx
+      UserHeader.tsx
+    profil/
+      page.tsx
+    projets/
+      [id]/
+        page.tsx
+      page.tsx
+    ressources/
+      page.tsx
+    visites/
+      page.tsx
+    layout.tsx
+    page.tsx
+    template.tsx
+  pole/
+    [poleId]/
+      evenements/
+        [id]/
+          presence/
+            page.tsx
+        nouveau/
+          page.tsx
+  favicon.ico
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+  membre/
+    activity/
+      ActivityCard.tsx
+      ActivityListClient.tsx
+      CapacityBar.tsx
+      EventDetailClient.tsx
+      RegistrationButton.tsx
+    announcements/
+      AnnouncementFeed.tsx
+    calendrier/
+      CalendarClient.tsx
+    dashboard/
+      AnimatedAnnouncementList.tsx
+      AnimatedPoints.tsx
+    leaderboard/
+      LeaderboardClient.tsx
+    pole/
+      ActivityForm.tsx
+      PresenceTracker.tsx
+    projects/
+      KanbanBoard.tsx
+    shared/
+      DimensionDivider.tsx
+lib/
+  supabase/
+    client.ts
+    database.types.ts
+    server.ts
+  utils.ts
+public/
+  file.svg
+  globe.svg
+  next.svg
+  vercel.svg
+  window.svg
+.gitignore
+AGENTS.md
+CLAUDE.md
+eslint.config.mjs
+next.config.ts
+package.json
+postcss.config.mjs
+proxy.ts
+README.md
+tailwind.config.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".github/workflows/ci.yml">
+
+</file>
+
+<file path="app/login/page.tsx">
+'use client'
+
+import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (authError) {
+      setError(
+        authError.message === 'Invalid login credentials'
+          ? 'Email ou mot de passe incorrect.'
+          : authError.message
+      )
+      setLoading(false)
+      return
+    }
+
+    router.push('/membre')
+    router.refresh()
+  }
+
+  return (
+    <div className="industrial-shell min-h-screen bg-bg px-4 py-10 sm:px-6 sm:py-16">
+      <div className="pointer-events-none fixed inset-0 industrial-grid" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-36 scanline-overlay opacity-35" />
+
+      <div className="relative mx-auto grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="hidden lg:block">
+          <div className="panel-surface rounded-xl p-8">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-steel mb-3">
+              CGI · ENIT
+            </p>
+            <h1 className="font-display text-4xl font-semibold leading-tight">
+              Pilote ton parcours <span className="text-gold-gradient">industriel</span>.
+            </h1>
+            <p className="mt-4 text-muted max-w-md">
+              Accède aux événements, formations, projets et ressources de ton club avec une
+              interface pensée comme un cockpit d&apos;ingénierie.
+            </p>
+            <div className="mt-7 grid grid-cols-2 gap-3">
+              {[
+                ['Projets', 'Suivi par étapes'],
+                ['Événements', 'Présence & stats'],
+                ['Formations', 'Compétences terrain'],
+                ['Rang', 'Progression continue'],
+              ].map(([title, subtitle]) => (
+                <div key={title} className="rounded-md border border-accent/20 bg-bg/50 p-3">
+                  <p className="font-display text-sm font-semibold text-accent-light">{title}</p>
+                  <p className="text-xs text-muted mt-0.5">{subtitle}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="relative w-full max-w-sm justify-self-center lg:max-w-none">
+          <div className="mb-6 text-center lg:mb-8">
+            <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-steel">
+              CGI · ENIT
+            </p>
+            <h1 className="font-display text-2xl font-semibold text-text sm:text-3xl">
+              Espace membre
+            </h1>
+            <p className="mt-1 text-sm text-muted">
+              Connecte-toi pour accéder à ton espace.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="panel-surface rounded-xl p-5 sm:p-6 flex flex-col gap-4 panel-interactive"
+          >
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="font-mono text-xs uppercase tracking-wider text-muted">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-sm border border-muted/35 bg-bg/80 px-3 py-2 text-sm text-text placeholder:text-muted/60 outline-none transition-all focus:border-accent focus:shadow-[0_0_0_2px_rgba(181,140,42,0.2)]"
+                placeholder="prenom.nom@enit.ucar.tn"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="password" className="font-mono text-xs uppercase tracking-wider text-muted">
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-sm border border-muted/35 bg-bg/80 px-3 py-2 text-sm text-text placeholder:text-muted/60 outline-none transition-all focus:border-accent focus:shadow-[0_0_0_2px_rgba(181,140,42,0.2)]"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-warning bg-warning/10 border border-warning/50 rounded-sm px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded-sm bg-gradient-gold px-4 py-2.5 text-sm font-semibold text-bg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-gold-glow disabled:opacity-50"
+            >
+              {loading ? 'Connexion...' : 'Se connecter'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-muted">
+            Pas encore de compte ? Contacte le bureau du club pour être ajouté.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/annonces/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import AnnouncementFeed from '@/components/membre/announcements/AnnouncementFeed'
+
+type Announcement = {
+  id: string
+  title: string
+  content: string | null
+  excerpt: string | null
+  pinned: boolean
+  created_at: string
+  pole_id: string | null
+  poles: { name: string } | null
+}
+
+export default async function AnnoncesPage() {
+  const supabase = await createClient()
+  const { data: announcements } = await supabase
+    .from('announcements')
+    .select('*, poles(name)')
+    .order('pinned', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  return (
+    <div className="space-y-6 max-w-3xl mx-auto">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Annonces</h1>
+        <p className="text-muted mt-1">Les communications officielles du bureau et des pôles.</p>
+      </div>
+      <AnnouncementFeed initialAnnouncements={(announcements ?? []) as Announcement[]} />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/annuaire/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import DimensionDivider from '@/components/membre/shared/DimensionDivider'
+
+type Profile = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  role: 'member' | 'pole_lead' | 'admin'
+  pole_id: string | null
+  points_total: number
+  year: string | null
+  poles: { name: string } | null
+}
+
+export default async function AnnuairePage() {
+  const supabase = await createClient()
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('*, poles(name)')
+    .order('first_name', { ascending: true })
+
+  const typedProfiles = (profiles ?? []) as Profile[]
+  const bureau = typedProfiles.filter((p) => p.role === 'admin' || p.role === 'pole_lead')
+  const members = typedProfiles.filter((p) => p.role === 'member')
+
+  // Grouper par pôle
+  const membersByPole = members.reduce((acc, member) => {
+    const poleName = member.poles?.name || 'Non assigné'
+    if (!acc[poleName]) acc[poleName] = []
+    acc[poleName].push(member)
+    return acc
+  }, {} as Record<string, Profile[]>)
+
+  const roleLabels: Record<string, string> = {
+    admin: 'Administrateur',
+    pole_lead: 'Responsable Pôle'
+  }
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Annuaire</h1>
+        <p className="text-muted mt-1">L&apos;organigramme du club et les membres par pôle.</p>
+      </div>
+
+      {/* Bureau */}
+      <section>
+        <DimensionDivider label="Bureau & Responsables" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+          {bureau.map((member) => (
+            <div key={member.id} className="panel-surface panel-interactive flex flex-col items-center rounded-md p-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-bg border border-muted/20 flex items-center justify-center mb-3">
+                <span className="font-display font-bold text-xl text-accent">
+                  {member.first_name?.[0]}{member.last_name?.[0]}
+                </span>
+              </div>
+              <p className="font-medium text-text text-sm">{member.first_name} {member.last_name}</p>
+              <p className="text-xs text-accent font-mono mt-1 uppercase tracking-wider">{roleLabels[member.role]}</p>
+              {member.poles && <p className="text-xs text-muted mt-0.5">{member.poles.name}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Membres par pôle */}
+      {Object.entries(membersByPole).map(([poleName, poleMembers]) => (
+        <section key={poleName}>
+          <DimensionDivider label={poleName} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            {poleMembers.map((member) => (
+              <div key={member.id} className="panel-surface panel-interactive flex items-center gap-3 rounded-md p-4">
+                <div className="w-10 h-10 rounded-full bg-bg border border-muted/20 flex items-center justify-center shrink-0">
+                  <span className="font-display font-bold text-sm text-muted">
+                    {member.first_name?.[0]}{member.last_name?.[0]}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-text text-sm truncate">{member.first_name} {member.last_name}</p>
+                  <p className="text-xs text-muted font-mono">{member.year || 'Année ?'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/calendrier/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import CalendarClient from '@/components/membre/calendrier/CalendarClient'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+
+export default async function CalendrierPage() {
+  const supabase = await createClient()
+  
+  // Récupère les activités du mois en cours + 1 mois avant/après pour les bords
+  const start = new Date()
+  start.setMonth(start.getMonth() - 1)
+  start.setDate(1)
+  
+  const end = new Date()
+  end.setMonth(end.getMonth() + 2)
+  end.setDate(0)
+
+  const { data: activities } = await supabase
+    .from('activities')
+    .select('*')
+    .gte('date_start', start.toISOString())
+    .lte('date_start', end.toISOString())
+    .order('date_start', { ascending: true })
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Calendrier</h1>
+        <p className="text-muted mt-1">Vue d&apos;ensemble des activités du club.</p>
+      </div>
+      <CalendarClient initialActivities={activities as Activity[]} />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/classement/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import LeaderboardClient from '@/components/membre/leaderboard/LeaderboardClient'
+import { Database } from '@/lib/supabase/database.types'
+
+type LeaderboardEntry = Database['public']['Views']['leaderboard']['Row']
+
+export default async function ClassementPage() {
+  const supabase = await createClient()
+  
+  const [userRes, leaderboardRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('leaderboard')
+      .select('*')
+      .order('rank', { ascending: true })
+  ])
+
+  const userId = userRes.data.user?.id
+  const leaderboard = leaderboardRes.data
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Classement</h1>
+        <p className="text-muted mt-1">L&apos;engagement fait la force du club. Voici les membres les plus actifs.</p>
+      </div>
+      
+      <LeaderboardClient 
+        initialLeaderboard={leaderboard as LeaderboardEntry[]} 
+        currentUserId={userId || ''} 
+      />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/evenements/[id]/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import EventDetailClient from '../../../../components/membre/activity/EventDetailClient'
+import { formatActivityDate } from '@/lib/utils'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+export default async function EventDetailPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Récupère l'activité
+  const activity = (await supabase
+    .from('activities')
+    .select('*')
+    .eq('id', params.id)
+    .eq('type', 'event') // Sécurité: on s'assure que c'est bien un event
+    .single()).data as Activity | null
+
+  if (!activity) notFound()
+
+  // Récupère l'inscription de l'utilisateur courant
+  const registration = (await supabase
+    .from('event_registrations')
+    .select('*')
+    .eq('activity_id', params.id)
+    .eq('user_id', user?.id || '')
+    .single()).data as Registration | null
+
+  // Compte les inscrits confirmés
+  const { count: registeredCount } = await supabase
+    .from('event_registrations')
+    .select('*', { count: 'exact', head: true })
+    .eq('activity_id', params.id)
+    .eq('status', 'confirmed')
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <span className="text-xs text-steel font-mono uppercase tracking-wider">Événement</span>
+        <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">{activity.title}</h1>
+        <div className="flex flex-wrap items-center gap-4 mt-3 text-muted">
+          <span className="font-mono text-sm">{formatActivityDate(activity.date_start)}</span>
+          {activity.location && <span className="text-sm">📍 {activity.location}</span>}
+        </div>
+      </div>
+
+      {activity.description && (
+        <div className="prose prose-invert max-w-none">
+          <p className="text-text/90 leading-relaxed">{activity.description}</p>
+        </div>
+      )}
+
+      <div className="panel-surface rounded-md p-6">
+        <h2 className="font-display text-xl font-bold mb-4">Inscription</h2>
+        <EventDetailClient 
+          activity={activity} 
+          initialRegistration={registration} 
+          initialRegisteredCount={registeredCount || 0} 
+        />
+      </div>
+
+      {/* S'il y a un compte-rendu après la date */}
+      {activity.recap_url && new Date(activity.date_start) < new Date() && (
+        <div className="bg-bg border border-success/30 p-4 rounded-md flex items-center justify-between">
+          <span className="text-sm text-success">Cet événement est terminé. Le compte-rendu est disponible.</span>
+          <a href={activity.recap_url} target="_blank" rel="noreferrer" className="text-sm font-medium text-success hover:underline">
+            Télécharger →
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/evenements/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import ActivityListClient from '../../../components/membre/activity/ActivityListClient'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+export default async function EvenementsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const [activitiesRes, registrationsRes, countsRes] = await Promise.all([
+    supabase
+      .from('activities')
+      .select('*')
+      .eq('type', 'event')
+      .order('date_start', { ascending: true }),
+    
+    supabase
+      .from('event_registrations')
+      .select('*')
+      .eq('user_id', userId || ''),
+      
+    supabase
+      .from('event_registrations')
+      .select('activity_id')
+      .eq('status', 'confirmed')
+  ])
+
+  const activities = (activitiesRes.data ?? []) as Activity[]
+  const registrations = (registrationsRes.data ?? []) as Registration[]
+  const counts = (countsRes.data ?? []) as Array<Pick<Registration, 'activity_id'>>
+
+  // Map pour accès rapide
+  const userRegsMap = new Map<string, Registration>()
+  registrations.forEach(reg => userRegsMap.set(reg.activity_id, reg))
+
+  const countMap = new Map<string, number>()
+  counts.forEach(c => {
+    countMap.set(c.activity_id, (countMap.get(c.activity_id) || 0) + 1)
+  })
+
+  const formattedActivities = activities.map(act => ({
+    activity: act,
+    registration: userRegsMap.get(act.id) || null,
+    registeredCount: countMap.get(act.id) || 0
+  }))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Événements</h1>
+        <p className="text-muted mt-1">Inscris-toi aux prochains événements du club.</p>
+      </div>
+      
+      <ActivityListClient 
+        activities={formattedActivities} 
+      />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/formations/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import ActivityListClient from '../../../components/membre/activity/ActivityListClient'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+export default async function FormationsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const [activitiesRes, registrationsRes, countsRes] = await Promise.all([
+    supabase
+      .from('activities')
+      .select('*')
+      .eq('type', 'formation')
+      .order('date_start', { ascending: true }),
+    
+    supabase
+      .from('event_registrations')
+      .select('*')
+      .eq('user_id', userId || ''),
+      
+    supabase
+      .from('event_registrations')
+      .select('activity_id')
+      .eq('status', 'confirmed')
+  ])
+
+  const activities = (activitiesRes.data ?? []) as Activity[]
+  const registrations = (registrationsRes.data ?? []) as Registration[]
+  const counts = (countsRes.data ?? []) as Array<Pick<Registration, 'activity_id'>>
+
+  // Map pour accès rapide
+  const userRegsMap = new Map<string, Registration>()
+  registrations.forEach(reg => userRegsMap.set(reg.activity_id, reg))
+
+  const countMap = new Map<string, number>()
+  counts.forEach(c => {
+    countMap.set(c.activity_id, (countMap.get(c.activity_id) || 0) + 1)
+  })
+
+  const formattedActivities = activities.map(act => ({
+    activity: act,
+    registration: userRegsMap.get(act.id) || null,
+    registeredCount: countMap.get(act.id) || 0
+  }))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Formations</h1>
+        <p className="text-muted mt-1">Développe tes compétences avec nos formations.</p>
+      </div>
+      
+      <ActivityListClient 
+        activities={formattedActivities} 
+      />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/layout/BottomNav.tsx">
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+export default function BottomNav() {
+  const pathname = usePathname()
+  
+  const links = [
+    { href: '/membre', label: 'Home', icon: '🏠' },
+    { href: '/membre/evenements', label: 'Events', icon: '📅' },
+    { href: '/membre/projets', label: 'Projets', icon: '🛠️' },
+    { href: '/membre/classement', label: 'Rang', icon: '🏆' },
+  ]
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-center justify-around border-t border-accent/20 bg-bg/90 px-2 backdrop-blur-lg lg:hidden">
+      {links.map((link) => {
+        const isActive = pathname === link.href || (link.href !== '/membre' && pathname.startsWith(link.href))
+        return (
+          <Link 
+            key={link.href} 
+            href={link.href}
+            className={`flex h-12 w-16 flex-col items-center justify-center rounded-md transition-all duration-200 ${
+              isActive
+                ? 'bg-accent/10 text-accent'
+                : 'text-muted hover:bg-card/80 hover:text-text'
+            }`}
+          >
+            <span className="text-lg">{link.icon}</span>
+            <span className="text-[10px] font-mono mt-0.5">{link.label}</span>
+            {isActive ? <span className="mt-0.5 h-0.5 w-4 rounded-full bg-accent" /> : null}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+</file>
+
+<file path="app/membre/layout/Sidebar.tsx">
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Database } from '@/lib/supabase/database.types'
+
+type Profile = Database['public']['Tables']['profiles']['Row'] & {
+  poles: { name: string } | null
+}
+
+export default function Sidebar({ profile }: { profile: Profile }) {
+  const pathname = usePathname()
+  
+  const links = [
+    { href: '/membre', label: 'Dashboard', icon: '⚡' },
+    { href: '/membre/evenements', label: 'Événements', icon: '📅' },
+    { href: '/membre/visites', label: 'Visites Industrielles', icon: '🏭' },
+    { href: '/membre/formations', label: 'Formations', icon: '🎓' },
+    { href: '/membre/projets', label: 'Projets', icon: '⚙️' },
+    { href: '/membre/annonces', label: 'Annonces', icon: '📢' },
+    { href: '/membre/calendrier', label: 'Calendrier', icon: '🗓️' },
+    { href: '/membre/annuaire', label: 'Annuaire', icon: '👥' },
+    { href: '/membre/classement', label: 'Classement', icon: '🏆' },
+  ]
+
+  return (
+    <aside className="hidden fixed inset-y-0 left-0 z-30 w-64 flex-col border-r border-accent/20 bg-[#050d20]/90 backdrop-blur-xl shadow-2xl lg:flex">
+      <div className="flex h-20 items-center gap-3 border-b border-accent/15 bg-gradient-to-r from-card/80 to-transparent px-6">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-gold p-0.5 shadow-gold-glow">
+          <div className="flex h-full w-full items-center justify-center rounded-[6px] bg-[#070E1E]">
+            <span className="text-xl animate-spin-slow">⚙️</span>
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <span className="font-display font-bold text-lg tracking-wider text-gold-gradient leading-none">
+            CGI ENIT
+          </span>
+          <span className="text-[10px] font-mono text-steel uppercase tracking-widest mt-1">
+            Génie Industriel
+          </span>
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+        {links.map((link) => {
+          const isActive = pathname === link.href || (link.href !== '/membre' && pathname.startsWith(link.href))
+          return (
+            <Link 
+              key={link.href}
+              href={link.href} 
+              className={`group relative flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm font-medium transition-all duration-200 ${
+                isActive 
+                  ? 'border-l-4 border-accent bg-gradient-to-r from-accent/20 to-accent/5 text-accent shadow-gold-glow' 
+                  : 'text-muted hover:translate-x-1 hover:bg-card/70 hover:text-text'
+              }`}
+            >
+              <span className={`text-base transition-transform duration-200 group-hover:scale-110 ${isActive ? 'scale-110' : ''}`}>
+                {link.icon}
+              </span>
+              <span className="font-body">{link.label}</span>
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              )}
+            </Link>
+          )
+        })}
+        
+        {(profile.role === 'pole_lead' || profile.role === 'admin') && (
+          <div className="mt-6 border-t border-accent/15 px-2 pt-6">
+            <div className="flex items-center justify-between mb-3 px-2">
+              <span className="text-[10px] uppercase tracking-widest text-accent font-mono">
+                Espace Responsable
+              </span>
+              <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded font-mono border border-accent/20">
+                {profile.role === 'admin' ? 'Admin' : 'Pôle Lead'}
+              </span>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      <div className="border-t border-accent/15 bg-card/40 p-4">
+        <Link href="/membre/profil" className="flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group">
+          <div className="w-9 h-9 rounded-full bg-gradient-gold p-0.5 shrink-0 shadow-gold-glow">
+            <div className="w-full h-full bg-[#070E1E] rounded-full flex items-center justify-center">
+              <span className="font-display font-bold text-xs text-accent">
+                {profile.first_name?.[0]}{profile.last_name?.[0]}
+              </span>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-text truncate group-hover:text-accent transition-colors">
+              {profile.first_name} {profile.last_name}
+            </p>
+            <p className="text-[10px] font-mono text-muted truncate">
+              {profile.poles?.name || 'Membre ENIT'}
+            </p>
+          </div>
+        </Link>
+      </div>
+    </aside>
+  )
+}
+</file>
+
+<file path="app/membre/layout/TemplateTransition.tsx">
+'use client'
+import { motion } from 'framer-motion'
+
+export default function TemplateTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+</file>
+
+<file path="app/membre/layout/UserHeader.tsx">
+'use client'
+import { motion } from 'framer-motion'
+import { Database } from '@/lib/supabase/database.types'
+
+type Profile = Database['public']['Tables']['profiles']['Row'] & {
+  poles: { name: string } | null
+}
+
+export default function UserHeader({ profile }: { profile: Profile }) {
+  return (
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent/15 bg-bg/80 px-4 backdrop-blur-md lg:px-8">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted/20 bg-card">
+           <span className="font-display font-bold text-accent">
+            {profile.first_name?.[0] || 'X'}{profile.last_name?.[0] || 'X'}
+           </span>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-text leading-none">
+            {profile.first_name} {profile.last_name}
+          </p>
+          <p className="text-xs text-muted leading-none mt-1">
+            {profile.poles?.name || 'Membre'} {profile.role === 'pole_lead' && '· Pole Lead'}
+          </p>
+        </div>
+      </div>
+
+      <div className="panel-surface flex items-center gap-2 rounded-md px-3 py-1.5">
+        <span className="text-xs text-muted font-mono uppercase tracking-wider hidden sm:block">Points</span>
+        <motion.span 
+          className="font-mono text-lg font-bold text-accent"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
+          {profile.points_total || 0}
+        </motion.span>
+      </div>
+    </header>
+  )
+}
+</file>
+
+<file path="app/membre/profil/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+
+type Profile = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  role: 'member' | 'pole_lead' | 'admin'
+  pole_id: string | null
+  points_total: number
+  year: string | null
+  poles: { name: string } | null
+}
+
+type PointLog = {
+  id: string
+  user_id: string
+  reason: string
+  amount: number
+  created_at: string
+}
+
+export default async function ProfilPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const [profileRes, pointsLogRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*, poles(name)')
+      .eq('id', userId || '')
+      .single(),
+    
+    supabase
+      .from('points_log')
+      .select('*')
+      .eq('user_id', userId || '')
+      .order('created_at', { ascending: false })
+  ])
+
+  const typedProfile = profileRes.data as Profile | null
+  const pointsLog = pointsLogRes.data
+
+  return (
+    <div className="space-y-8 max-w-3xl">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Mon Profil</h1>
+      </div>
+
+      <div className="panel-surface rounded-md p-6">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 rounded-full bg-bg border border-muted/20 flex items-center justify-center">
+            <span className="font-display font-bold text-2xl text-accent">
+              {typedProfile?.first_name?.[0]}{typedProfile?.last_name?.[0]}
+            </span>
+          </div>
+          <div>
+            <h2 className="font-display text-2xl font-bold">{typedProfile?.first_name} {typedProfile?.last_name}</h2>
+            <p className="text-muted text-sm">{typedProfile?.poles?.name || 'Membre'} · {typedProfile?.year || 'Année ?'}</p>
+          </div>
+        </div>
+        
+        <div className="mt-6 pt-6 border-t border-muted/10 flex items-center justify-between">
+          <span className="text-sm text-muted uppercase font-mono tracking-wider">Total Points</span>
+          <span className="font-mono text-3xl font-bold text-accent">{typedProfile?.points_total || 0}</span>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-display text-xl font-bold mb-4">Historique des points</h3>
+        <div className="panel-surface overflow-hidden rounded-md">
+          {pointsLog && pointsLog.length > 0 ? (
+            pointsLog.map((log: PointLog) => (
+              <div key={log.id} className="flex items-center justify-between p-4 border-b border-bg/50 last:border-b-0">
+                <div>
+                  <p className="text-sm text-text font-medium">{log.reason}</p>
+                  <p className="text-xs text-muted font-mono mt-0.5">
+                    {new Date(log.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <span className={`font-mono font-bold text-lg ${log.amount > 0 ? 'text-success' : 'text-danger'}`}>
+                  {log.amount > 0 ? '+' : ''}{log.amount}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="p-4 text-center text-muted text-sm">Aucun mouvement de points enregistré.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/projets/[id]/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import KanbanBoard from '../../../../components/membre/projects/KanbanBoard'
+
+type Project = {
+  id: string
+  title: string
+  deadline: string | null
+  lead_id: string | null
+  poles: { name: string } | null
+  profiles: { first_name: string | null; last_name: string | null } | null
+}
+
+type ProjectMember = {
+  id: string
+}
+
+type ProjectTask = {
+  id: string
+  project_id: string
+  title: string
+  status: 'todo' | 'in_progress' | 'done'
+  assignee_id: string | null
+}
+
+type ProjectMemberProfile = {
+  profiles: { id: string; first_name: string | null; last_name: string | null }
+}
+
+export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const project = (await supabase
+    .from('projects')
+    .select('*, poles(name), profiles:lead_id(first_name, last_name)')
+    .eq('id', params.id)
+    .single()).data as Project | null
+
+  if (!project) notFound()
+
+  // Vérifier si l'user est membre
+  const membership = (await supabase
+    .from('project_members')
+    .select('id')
+    .eq('project_id', params.id)
+    .eq('user_id', userId || '')
+    .single()).data as ProjectMember | null
+
+  const isMember = !!membership || project.lead_id === userId
+
+  // Récupérer les tâches
+  const tasks = ((await supabase
+    .from('project_tasks')
+    .select('*')
+    .eq('project_id', params.id)
+  ).data ?? []) as ProjectTask[]
+
+  // Récupérer les membres du projet pour les avatars
+  const members = ((await supabase
+    .from('project_members')
+    .select('profiles(id, first_name, last_name)')
+    .eq('project_id', params.id)
+  ).data ?? []) as ProjectMemberProfile[]
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs text-accent font-mono uppercase tracking-wider">
+            {project.poles?.name || 'Projet'}
+          </span>
+          <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">{project.title}</h1>
+          <div className="flex items-center gap-4 mt-2 text-sm text-muted">
+            <span>Responsable: {project.profiles?.first_name} {project.profiles?.last_name}</span>
+            {project.deadline && <span className="font-mono">Échéance: {new Date(project.deadline).toLocaleDateString('fr-FR')}</span>}
+          </div>
+        </div>
+        
+        <div className="flex items-center -space-x-2">
+          {members.map((m) => (
+            <div key={m.profiles.id} className="w-8 h-8 rounded-full bg-card border-2 border-bg flex items-center justify-center text-xs font-bold">
+              {(m.profiles.first_name?.[0] || '?')}{(m.profiles.last_name?.[0] || '?')}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <KanbanBoard 
+        projectId={params.id} 
+        initialTasks={tasks || []} 
+        isMember={isMember} 
+      />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/projets/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import DimensionDivider from '@/components/membre/shared/DimensionDivider'
+
+type ProjectSummary = {
+  projects: {
+    id: string
+    title: string
+    description: string | null
+    progress: number
+    status: string
+    poles: { name: string } | null
+  } | null
+}
+
+export default async function ProjetsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const { data: projectMembers } = await supabase
+    .from('project_members')
+    .select('projects(id, title, description, progress, status, poles(name))')
+    .eq('user_id', userId || '')
+    .order('created_at', { ascending: false })
+
+  const projects = (projectMembers ?? []) as ProjectSummary[]
+  
+  const activeProjects = projects.filter(p => p.projects && p.projects.status !== 'done')
+  const completedProjects = projects.filter(p => p.projects && p.projects.status === 'done')
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Mes Projets</h1>
+        <p className="text-muted mt-1">Suis l&apos;avancement des projets sur lesquels tu travailles.</p>
+      </div>
+
+      <section>
+        <DimensionDivider label="Projets en cours" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {activeProjects.length > 0 ? (
+            activeProjects.map(({ projects: p }) => p && (
+              <Link 
+                key={p.id} 
+                href={`/membre/projets/${p.id}`}
+                className="panel-surface panel-interactive group flex flex-col rounded-md p-5"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-display text-lg font-semibold group-hover:text-accent transition-colors">{p.title}</h3>
+                  {p.poles && <span className="text-xs text-muted font-mono bg-bg px-2 py-1 rounded-sm border border-muted/20">{p.poles.name}</span>}
+                </div>
+                <p className="text-sm text-muted line-clamp-2 mb-4 flex-1">{p.description || 'Aucune description fournie.'}</p>
+                <div className="mt-auto">
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-muted uppercase">{p.status}</span>
+                    <span className="text-accent">{p.progress}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-bg rounded-full overflow-hidden">
+                    <div className="h-full bg-accent transition-all duration-500" style={{ width: `${p.progress}%` }} />
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="panel-surface col-span-full rounded-md border border-dashed border-muted/30 p-6 text-center text-sm text-muted">
+              Tu ne participes à aucun projet actif pour le moment.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {completedProjects.length > 0 && (
+        <section>
+          <DimensionDivider label="Projets terminés" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 opacity-75">
+            {completedProjects.map(({ projects: p }) => p && (
+              <Link 
+                key={p.id} 
+                href={`/membre/projets/${p.id}`}
+                className="bg-bg border border-muted/10 hover:border-success/30 transition-colors p-5 rounded-md flex flex-col group"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-display text-lg font-medium text-muted group-hover:text-success transition-colors">{p.title}</h3>
+                  {p.poles && <span className="text-[10px] text-muted font-mono uppercase">{p.poles.name}</span>}
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success"></div>
+                  <span className="text-xs text-success font-mono uppercase tracking-wider">Terminé</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/ressources/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { Database } from '@/lib/supabase/database.types'
+import DimensionDivider from '@/components/membre/shared/DimensionDivider'
+
+type Resource = Database['public']['Tables']['resources']['Row'] & {
+  poles: { name: string } | null
+}
+
+export default async function RessourcesPage() {
+  const supabase = await createClient()
+  
+  // RLS s'assure qu'on ne récupère que les ressources du pôle du user si pole_id est non null
+  const { data: resources } = await supabase
+    .from('resources')
+    .select('*, poles(name)')
+    .order('category', { ascending: true })
+
+  const grouped = (resources as Resource[] || []).reduce((acc, res) => {
+    const cat = res.category || 'Divers'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(res)
+    return acc
+  }, {} as Record<string, Resource[]>)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Ressources</h1>
+        <p className="text-muted mt-1">Documents, templates et supports du club.</p>
+      </div>
+
+      {Object.entries(grouped).map(([cat, items]) => (
+        <section key={cat}>
+          <DimensionDivider label={cat} />
+          <div className="mt-4 space-y-2">
+            {items.map(res => (
+              <a 
+                key={res.id} 
+                href={res.file_url} 
+                target="_blank" 
+                rel="noreferrer"
+                className="panel-surface panel-interactive group flex items-center gap-4 rounded-md p-3"
+              >
+                <div className="w-10 h-10 bg-bg flex items-center justify-center rounded-sm border border-muted/20">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-steel">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-text group-hover:text-steel transition-colors truncate">{res.title}</p>
+                  {res.poles && <p className="text-xs text-accent font-mono mt-0.5">Pôle {res.poles.name}</p>}
+                </div>
+                <span className="text-xs text-muted group-hover:text-steel transition-colors">Télécharger ↓</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      {Object.keys(grouped).length === 0 && (
+        <div className="panel-surface rounded-md border border-dashed border-muted/30 py-16 text-center">
+          <p className="text-muted">Aucune ressource disponible pour le moment.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/visites/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import ActivityListClient from '../../../components/membre/activity/ActivityListClient'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+export default async function VisitesPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  const [activitiesRes, registrationsRes, countsRes] = await Promise.all([
+    supabase
+      .from('activities')
+      .select('*')
+      .eq('type', 'visit')
+      .order('date_start', { ascending: true }),
+    
+    supabase
+      .from('event_registrations')
+      .select('*')
+      .eq('user_id', userId || ''),
+      
+    supabase
+      .from('event_registrations')
+      .select('activity_id')
+      .eq('status', 'confirmed')
+  ])
+
+  const activities = (activitiesRes.data ?? []) as Activity[]
+  const registrations = (registrationsRes.data ?? []) as Registration[]
+  const counts = (countsRes.data ?? []) as Array<Pick<Registration, 'activity_id'>>
+
+  // Map pour accès rapide
+  const userRegsMap = new Map<string, Registration>()
+  registrations.forEach(reg => userRegsMap.set(reg.activity_id, reg))
+
+  const countMap = new Map<string, number>()
+  counts.forEach(c => {
+    countMap.set(c.activity_id, (countMap.get(c.activity_id) || 0) + 1)
+  })
+
+  const formattedActivities = activities.map(act => ({
+    activity: act,
+    registration: userRegsMap.get(act.id) || null,
+    registeredCount: countMap.get(act.id) || 0
+  }))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Visites Industrielles</h1>
+        <p className="text-muted mt-1">Découvre le monde de l&apos;entreprise lors de nos visites.</p>
+      </div>
+      
+      <ActivityListClient 
+        activities={formattedActivities} 
+      />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/layout.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Sidebar from './layout/Sidebar'
+import BottomNav from './layout/BottomNav'
+import UserHeader from './layout/UserHeader'
+
+export default async function MembreLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?error=no_user')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*, poles(*)')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    redirect('/login?error=no_profile')
+  }
+
+  return (
+    <div className="industrial-shell min-h-screen flex flex-col lg:flex-row bg-bg">
+      <div className="pointer-events-none fixed inset-0 industrial-grid" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-40 scanline-overlay opacity-25" />
+      {/* Sidebar Desktop */}
+      <Sidebar profile={profile} />
+      
+      {/* Contenu principal */}
+      <div className="flex-1 flex flex-col min-h-screen lg:pl-64">
+        <UserHeader profile={profile} />
+        <main className="relative flex-1 p-4 pb-24 sm:p-5 lg:p-8 lg:pb-8">
+          {children}
+        </main>
+      </div>
+
+      {/* Navigation Mobile */}
+      <BottomNav />
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { Database } from '@/lib/supabase/database.types'
+import Link from 'next/link'
+import { formatActivityDate, getActivityTypeLabel } from '@/lib/utils'
+import AnimatedPoints from '@/components/membre/dashboard/AnimatedPoints'
+import AnimatedAnnouncementList from '@/components/membre/dashboard/AnimatedAnnouncementList'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+
+type Announcement = {
+  id: string
+  title: string
+  excerpt: string | null
+  created_at: string
+}
+
+type RankData = {
+  rank: number
+  points_total: number
+}
+
+type UpcomingRegistration = {
+  activities: Activity | null
+  status: 'confirmed' | 'waitlisted'
+}
+
+type ProjectSummary = {
+  projects: {
+    id: string
+    title: string
+    progress: number
+    status: string
+    poles: { name: string } | null
+  } | null
+}
+
+function DimensionDivider({ label }: { label?: string }) {
+  return (
+    <div className="relative flex items-center py-4 my-2">
+      <div className="flex-1 h-px bg-muted/20"></div>
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-px h-2 bg-muted/40"></div>
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-2 bg-muted/40"></div>
+      {label && (
+        <span className="px-3 text-xs font-mono uppercase tracking-widest text-muted bg-bg">
+          {label}
+        </span>
+      )}
+      <div className="flex-1 h-px bg-muted/20"></div>
+    </div>
+  )
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
+
+  if (!userId) return null
+
+  const inSevenDays = new Date()
+  inSevenDays.setDate(inSevenDays.getDate() + 7)
+
+  const [
+    rankRes,
+    membersRes,
+    upcomingRegsRes,
+    activeProjectsRes,
+    announcementsRes,
+    agendaRes
+  ] = await Promise.all([
+    supabase.from('leaderboard').select('rank, points_total').eq('user_id', userId).single(),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('event_registrations').select('activities(*), status').eq('user_id', userId).in('status', ['confirmed', 'waitlisted']).gt('activities.date_start', new Date().toISOString()).order('activities.date_start', { ascending: true }).limit(2),
+    supabase.from('project_members').select('projects(id, title, progress, status, poles(name))').eq('user_id', userId).neq('projects.status', 'done').limit(3),
+    supabase.from('announcements').select('id, title, excerpt, created_at').order('created_at', { ascending: false }).limit(3),
+    supabase.from('activities').select('id, title, type, date_start').gt('date_start', new Date().toISOString()).lt('date_start', inSevenDays.toISOString()).order('date_start', { ascending: true })
+  ])
+
+  const rankData = (rankRes.data ?? null) as RankData | null
+  const totalMembers = membersRes.count ?? 0
+  
+  const upcomingRegs = (upcomingRegsRes.data ?? []) as UpcomingRegistration[]
+  const nextEvent = upcomingRegs.find(r => r.activities?.type === 'event')?.activities
+  const nextFormation = upcomingRegs.find(r => r.activities?.type === 'formation')?.activities
+  
+  const activeProjects = (activeProjectsRes.data ?? []) as ProjectSummary[]
+  const announcements = (announcementsRes.data ?? []) as Announcement[]
+  const agenda = (agendaRes.data ?? []) as Activity[]
+
+  return (
+    <div className="space-y-8">
+      <section className="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Tableau de bord</h1>
+          <p className="text-muted mt-1">Bienvenue, voici l&apos;activité du club en temps réel.</p>
+        </div>
+        <div className="panel-surface flex items-end gap-6 rounded-md p-4">
+          <div>
+            <p className="text-xs text-muted font-mono uppercase tracking-wider mb-1">Points</p>
+            <AnimatedPoints points={rankData?.points_total || 0} />
+          </div>
+          <div className="h-12 w-px bg-muted/20" />
+          <div>
+            <p className="text-xs text-muted font-mono uppercase tracking-wider mb-1">Rang</p>
+            <p className="font-mono text-2xl font-bold text-text">
+              {rankData?.rank || '-'}<span className="text-muted text-sm font-body">e / {totalMembers}</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="panel-surface panel-interactive flex flex-col rounded-md p-4">
+          <span className="text-xs text-steel font-mono uppercase tracking-wider mb-2">Prochain Événement</span>
+          {nextEvent ? (
+            <>
+              <h3 className="font-display text-lg font-semibold flex-1">{nextEvent.title}</h3>
+              <p className="text-sm text-muted font-mono mt-2">{formatActivityDate(nextEvent.date_start)}</p>
+              <Link href={`/membre/evenements/${nextEvent.id}`} className="text-sm text-steel hover:underline mt-3 inline-block">
+                Voir le détail →
+              </Link>
+            </>
+          ) : (
+            <p className="text-sm text-muted py-4">Aucun événement à venir. Inscris-toi vite !</p>
+          )}
+        </div>
+
+        <div className="panel-surface panel-interactive flex flex-col rounded-md p-4">
+          <span className="text-xs text-success font-mono uppercase tracking-wider mb-2">Prochaine Formation</span>
+          {nextFormation ? (
+            <>
+              <h3 className="font-display text-lg font-semibold flex-1">{nextFormation.title}</h3>
+              <p className="text-sm text-muted font-mono mt-2">{formatActivityDate(nextFormation.date_start)}</p>
+              <Link href={`/membre/formations/${nextFormation.id}`} className="text-sm text-success hover:underline mt-3 inline-block">
+                Voir le détail →
+              </Link>
+            </>
+          ) : (
+            <p className="text-sm text-muted py-4">Pas de formation planifiée pour toi.</p>
+          )}
+        </div>
+
+        <div className="panel-surface panel-interactive flex flex-col rounded-md p-4">
+          <span className="text-xs text-accent font-mono uppercase tracking-wider mb-2">Projets Actifs</span>
+          {activeProjects.length > 0 ? (
+            <ul className="space-y-2 flex-1">
+              {activeProjects.map(({ projects: p }) => (
+                <li key={p?.id}>
+                  <Link href={`/membre/projets/${p?.id}`} className="block hover:bg-bg/50 p-2 rounded-sm transition-colors">
+                    <p className="font-medium text-sm text-text">{p?.title}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 h-1 bg-bg rounded-full overflow-hidden">
+                        <div className="h-full bg-accent" style={{ width: `${p?.progress || 0}%` }} />
+                      </div>
+                      <span className="text-xs font-mono text-muted">{p?.progress || 0}%</span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted py-4">Tu ne fais partie d&apos;aucun projet pour le moment.</p>
+          )}
+        </div>
+      </section>
+
+      <DimensionDivider label="Activité Récente" />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="font-display text-xl font-bold">Dernières Annonces</h2>
+          {announcements.length > 0 ? (
+            <AnimatedAnnouncementList announcements={announcements} />
+          ) : (
+            <p className="text-muted text-sm">Aucune annonce du bureau pour le moment.</p>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="font-display text-xl font-bold">7 Prochains Jours</h2>
+          <div className="panel-surface space-y-3 rounded-md p-4">
+            {agenda.length > 0 ? (
+              agenda.map((act) => (
+                <Link 
+                  key={act.id} 
+                  href={`/membre/${act.type === 'event' ? 'evenements' : act.type === 'visit' ? 'visites' : 'formations'}/${act.id}`}
+                  className="flex items-center gap-3 group"
+                >
+                  <div className="flex flex-col items-center justify-center w-10 h-10 bg-bg rounded-sm border border-muted/20 shrink-0">
+                    <span className="text-[10px] uppercase text-muted font-mono">
+                      {new Date(act.date_start).toLocaleDateString('fr-FR', { month: 'short' })}
+                    </span>
+                    <span className="text-sm font-bold text-text leading-none">
+                      {new Date(act.date_start).getDate()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text group-hover:text-accent truncate transition-colors">
+                      {act.title}
+                    </p>
+                    <p className="text-xs text-muted font-mono">
+                      {getActivityTypeLabel(act.type)} - {new Date(act.date_start).getHours()}h{new Date(act.date_start).getMinutes().toString().padStart(2, '0')}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="text-muted text-sm text-center py-4">Agenda vide pour cette semaine.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/membre/template.tsx">
+'use client'
+import { motion } from 'framer-motion'
+
+export default function TemplateTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+</file>
+
+<file path="app/pole/[poleId]/evenements/[id]/presence/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import PresenceTracker, { type Registration } from '@/components/membre/pole/PresenceTracker'
+type Profile = {
+  role: 'member' | 'pole_lead' | 'admin'
+}
+
+type Activity = {
+  title: string
+  date_start: string
+}
+
+export default async function PresencePage({ params }: { params: { poleId: string, id: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user?.id || '')
+    .single()
+
+  const typedProfile = profile as Profile | null
+
+  if (!typedProfile || (typedProfile.role !== 'admin' && typedProfile.role !== 'pole_lead')) {
+    redirect('/membre')
+  }
+
+  const { data: activity } = await supabase
+    .from('activities')
+    .select('title, date_start')
+    .eq('id', params.id)
+    .single()
+
+  const typedActivity = activity as Activity | null
+
+  const { data: registrations } = await supabase
+    .from('event_registrations')
+    .select('*, profiles(first_name, last_name)')
+    .eq('activity_id', params.id)
+    .eq('status', 'confirmed')
+    .order('profiles(last_name)', { ascending: true })
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <span className="text-xs text-accent font-mono uppercase tracking-wider">Pointage</span>
+        <h1 className="font-display text-3xl font-bold tracking-tight">{typedActivity?.title}</h1>
+        <p className="text-muted mt-1">Coche les membres présents. Les points sont crédités automatiquement.</p>
+      </div>
+
+      <PresenceTracker registrations={(registrations ?? []) as Registration[]} />
+    </div>
+  )
+}
+</file>
+
+<file path="app/pole/[poleId]/evenements/nouveau/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import ActivityForm from '@/components/membre/pole/ActivityForm'
+
+type Profile = {
+  role: 'member' | 'pole_lead' | 'admin'
+}
+
+export default async function CreateActivityPage({ params }: { params: { poleId: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  // Vérification des droits
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user?.id || '')
+    .single()
+
+  const typedProfile = profile as Profile | null
+
+  if (!typedProfile || (typedProfile.role !== 'admin' && typedProfile.role !== 'pole_lead')) {
+    redirect('/membre')
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Nouvelle Activité</h1>
+        <p className="text-muted mt-1">Crée un événement, une visite ou une formation.</p>
+      </div>
+      <ActivityForm poleId={params.poleId} />
+    </div>
+  )
+}
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+:root {
+  --color-bg: #040A17;
+  --color-card: #0C1426;
+  --color-surface: #101C34;
+  --color-accent: #B58C2A;
+  --color-accent-light: #E5C66A;
+  --color-steel: #2F5C9F;
+  --color-text: #F3F6FD;
+  --color-muted: #91A3BE;
+  --color-border: rgba(181, 140, 42, 0.2);
+}
+
+body {
+  background-color: var(--color-bg);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(23, 53, 117, 0.28) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(181, 140, 42, 0.12) 0px, transparent 50%),
+    linear-gradient(to right, rgba(181, 140, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(181, 140, 42, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  color: var(--color-text);
+  font-family: var(--font-body), sans-serif;
+  overflow-x: hidden;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #f5de96 0%, #b58c2a 50%, #7e6219 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-steel-gradient {
+  background: linear-gradient(135deg, #5a8fd8 0%, #2f5c9f 50%, #1c3768 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-panel {
+  background: rgba(12, 20, 38, 0.76);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(16, 28, 52, 0.9);
+  border-color: rgba(181, 140, 42, 0.42);
+  box-shadow: 0 10px 30px -14px rgba(181, 140, 42, 0.38);
+  transform: translateY(-3px);
+}
+
+.industrial-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.industrial-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 16% 24%, rgba(47, 92, 159, 0.28), transparent 33%),
+    radial-gradient(circle at 78% 78%, rgba(181, 140, 42, 0.2), transparent 28%);
+}
+
+.industrial-grid {
+  position: relative;
+}
+
+.industrial-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(to right, rgba(47, 92, 159, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(47, 92, 159, 0.16) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 45%, transparent 95%);
+}
+
+.panel-surface {
+  background: linear-gradient(145deg, rgba(12, 20, 38, 0.88), rgba(7, 13, 29, 0.94));
+  border: 1px solid rgba(181, 140, 42, 0.16);
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.95);
+}
+
+.panel-interactive {
+  transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.panel-interactive:hover {
+  border-color: rgba(181, 140, 42, 0.38);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -20px rgba(181, 140, 42, 0.35);
+}
+
+.scanline-overlay {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(181, 140, 42, 0.03),
+    rgba(181, 140, 42, 0.03) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  .industrial-grid::after {
+    background-size: 24px 24px;
+    opacity: 0.14;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(181, 140, 42, 0.24);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(181, 140, 42, 0.5);
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Inter, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const spaceGrostek = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ibm-plex-mono", display: "swap" });
+
+export const metadata: Metadata = {
+  title: "CGI ENIT | Espace Membre",
+  description: "Club Génie Industriel ENIT - Espace de gestion interne",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="fr" className={`${inter.variable} ${spaceGrostek.variable} ${plexMono.variable}`}>
+      <body className="bg-bg text-text font-body antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="app/page.tsx">
+import Link from 'next/link'
+
+const highlights = [
+  {
+    title: 'Événements & visites',
+    description: "Portes ouvertes en usine, conférences et rencontres avec des professionnels de l'industrie.",
+  },
+  {
+    title: 'Formations',
+    description: 'Ateliers pratiques sur le Lean 4.0, les ERP, les jumeaux numériques et la data science.',
+  },
+  {
+    title: 'Projets',
+    description: 'Des projets étudiants encadrés par pôle, du brief au livrable, en équipe.',
+  },
+]
+
+export default function Home() {
+  return (
+    <div className="industrial-shell min-h-screen bg-bg text-text">
+      <div className="pointer-events-none fixed inset-0 industrial-grid" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-40 scanline-overlay opacity-30" />
+
+      <header className="relative border-b border-card/80 bg-bg/75 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
+          <span className="font-display text-lg font-bold tracking-[0.08em] text-gold-gradient sm:text-xl">
+            CGI ENIT
+          </span>
+          <Link
+            href="/login"
+            className="rounded-sm border border-accent/35 bg-card/70 px-4 py-2 font-mono text-xs uppercase tracking-wider text-text transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:text-accent"
+          >
+            Espace membre
+          </Link>
+        </div>
+      </header>
+
+      <main className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        <section className="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-24">
+          <div>
+            <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-steel sm:mb-5">
+              Club Génie Industriel · ENIT
+            </p>
+            <h1 className="max-w-2xl font-display text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+              Là où l&apos;ingénierie industrielle prend vie, en dehors des amphis.
+            </h1>
+            <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">
+              Le club rassemble les étudiants du département Génie Industriel autour de projets,
+              de formations et de visites en entreprise.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/login"
+                className="rounded-sm bg-gradient-gold px-5 py-2.5 text-sm font-semibold text-bg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-gold-glow"
+              >
+                Accéder à l&apos;espace membre
+              </Link>
+              <span className="rounded-sm border border-steel/30 bg-steel/10 px-4 py-2.5 font-mono text-xs uppercase tracking-[0.15em] text-steel">
+                Lean · Data · Terrain
+              </span>
+            </div>
+          </div>
+
+          <div className="panel-surface panel-interactive relative overflow-hidden rounded-xl p-6 sm:p-7">
+            <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-accent/20 blur-3xl animate-float-gentle" />
+            <div className="pointer-events-none absolute -bottom-14 -left-10 h-36 w-36 rounded-full bg-blue-700/20 blur-3xl animate-float-gentle [animation-delay:1.2s]" />
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent-light">
+              Vision industrielle
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-text">
+              Former, construire, piloter.
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Notre communauté transforme les idées en systèmes efficaces via des missions terrain,
+              des outils numériques et une culture d&apos;amélioration continue.
+            </p>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {[
+                ['6+', 'Pôles actifs'],
+                ['20+', 'Actions/an'],
+                ['100%', 'Orientation impact'],
+              ].map(([value, label]) => (
+                <div key={label} className="rounded-md border border-accent/15 bg-bg/50 px-3 py-3 text-center">
+                  <p className="font-display text-lg font-bold text-accent-light">{value}</p>
+                  <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-muted">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="pb-16 sm:pb-24">
+          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+            Axes d&apos;action
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {highlights.map((item) => (
+              <div
+                key={item.title}
+                className="panel-surface panel-interactive rounded-lg p-5"
+              >
+                <h2 className="font-display text-lg font-semibold text-text">
+                  {item.title}
+                </h2>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {item.description}
+                </p>
+                <div className="mt-4 h-px w-full bg-gradient-to-r from-accent/40 via-steel/30 to-transparent" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer className="relative border-t border-card/80 bg-bg/85 backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-4 py-5 font-mono text-xs text-muted sm:px-6">
+          CGI ENIT — École Nationale d&apos;Ingénieurs de Tunis
+        </div>
+      </footer>
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/activity/ActivityCard.tsx">
+import Link from 'next/link'
+import { Database } from '@/lib/supabase/database.types'
+import { formatActivityDate, getActivityTypeLabel } from '@/lib/utils'
+import CapacityBar from './CapacityBar'
+import { motion } from 'framer-motion'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+type Props = {
+  activity: Activity
+  registration: Registration | null
+  registeredCount: number
+}
+
+export default function ActivityCard({ activity, registration, registeredCount }: Props) {
+  const isFull = activity.capacity ? registeredCount >= activity.capacity : false
+  const typeColor = activity.type === 'event' ? 'text-steel' : activity.type === 'visit' ? 'text-accent' : 'text-success'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -2 }}
+      className="panel-surface panel-interactive flex h-full flex-col overflow-hidden rounded-md group"
+    >
+      <Link href={`/membre/${activity.type === 'event' ? 'evenements' : activity.type === 'visit' ? 'visites' : 'formations'}/${activity.id}`} className="flex-1 p-4 flex flex-col gap-3">
+        <div className="flex justify-between items-start">
+          <span className={`text-xs font-mono uppercase tracking-wider ${typeColor}`}>
+            {getActivityTypeLabel(activity.type)}
+          </span>
+          {registration && (
+            <span className={`text-xs font-mono px-2 py-0.5 rounded-sm ${
+              registration.status === 'confirmed' 
+                ? 'bg-success/20 text-success' 
+                : 'bg-warning/20 text-warning'
+            }`}>
+              {registration.status === 'confirmed' ? 'Inscrit' : `Attente #${registration.queue_position}`}
+            </span>
+          )}
+          {!registration && isFull && (
+            <span className="text-xs font-mono px-2 py-0.5 rounded-sm bg-muted/20 text-muted">
+              Complet
+            </span>
+          )}
+        </div>
+
+        <div>
+          <h3 className="font-display font-semibold text-lg text-text leading-tight group-hover:text-accent transition-colors">
+            {activity.title}
+          </h3>
+          {activity.location && (
+            <p className="text-sm text-muted mt-1 flex items-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {activity.location}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-auto pt-3 border-t border-bg/50">
+          <p className="text-sm text-text font-mono mb-3">
+            {formatActivityDate(activity.date_start)}
+          </p>
+          {activity.capacity && (
+            <CapacityBar registered={registeredCount} capacity={activity.capacity} />
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+</file>
+
+<file path="components/membre/activity/ActivityListClient.tsx">
+'use client'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import ActivityCard from './ActivityCard'
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+type Props = {
+  activities: { activity: Activity; registration: Registration | null; registeredCount: number }[]
+}
+
+export default function ActivityListClient({ activities }: Props) {
+  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming')
+  const now = new Date()
+
+  const filtered = activities.filter(item => {
+    const isUpcoming = new Date(item.activity.date_start) >= now
+    return filter === 'upcoming' ? isUpcoming : !isUpcoming
+  })
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2 border-b border-accent/15">
+        {(['upcoming', 'past'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+              filter === f ? 'text-accent' : 'text-muted hover:text-text'
+            }`}
+          >
+            {f === 'upcoming' ? 'À venir' : 'Passés'}
+            {filter === f && (
+              <motion.div 
+                layoutId="active-tab"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent"
+              />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length > 0 ? (
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 }
+            }
+          }}
+        >
+          <AnimatePresence mode="popLayout">
+            {filtered.map((item) => (
+              <motion.div
+                key={item.activity.id}
+                layout
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <ActivityCard 
+                  activity={item.activity}
+                  registration={item.registration}
+                  registeredCount={item.registeredCount}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      ) : (
+        <div className="panel-surface rounded-md border border-dashed border-muted/30 py-16 text-center">
+          <p className="text-muted">
+            {filter === 'upcoming' 
+              ? "Aucun événement à venir pour le moment. Reviens bientôt !" 
+              : "Aucun événement passé."}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/activity/CapacityBar.tsx">
+'use client'
+import { motion } from 'framer-motion'
+
+type CapacityBarProps = {
+  registered: number
+  capacity: number
+}
+
+export default function CapacityBar({ registered, capacity }: CapacityBarProps) {
+  const isFull = registered >= capacity
+  const fillPercent = Math.min((registered / capacity) * 100, 100)
+
+  // Génère les graduations (max 10 pour éviter la surcharge visuelle)
+  const ticks = Array.from({ length: Math.min(capacity, 10) })
+
+  return (
+    <div className="w-full select-none">
+      <div className="flex justify-between items-center mb-1.5">
+        <span className="text-xs text-muted font-mono uppercase tracking-wider">
+          {isFull ? 'Complet' : 'Capacité'}
+        </span>
+        <span className="text-xs text-text font-mono">
+          {registered}<span className="text-muted">/{capacity}</span>
+        </span>
+      </div>
+
+      {/* Ligne de cotation */}
+      <div className="relative h-4 flex items-center">
+        {/* Amorce gauche */}
+        <div className="absolute left-0 h-full w-px bg-muted/50" />
+        {/* Amorce droite */}
+        <div className="absolute right-0 h-full w-px bg-muted/50" />
+        
+        {/* Ligne principale */}
+        <div className="absolute inset-x-0 h-px bg-muted/30 top-1/2" />
+        
+        {/* Remplissage */}
+        <motion.div 
+          className="absolute left-0 top-1/2 h-px bg-gradient-to-r from-accent-dark via-accent to-accent-light"
+          initial={{ width: 0 }}
+          animate={{ width: `${fillPercent}%` }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+        
+        {/* Graduations */}
+        <div className="absolute inset-x-0 flex justify-between top-1/2 -translate-y-1/2">
+          {ticks.map((_, i) => {
+            const tickPosition = (i / (ticks.length - 1)) * 100
+            const isFilled = tickPosition <= fillPercent
+            return (
+              <div 
+                key={i} 
+                className={`w-px h-2 ${isFilled ? 'bg-accent' : 'bg-muted/40'}`}
+                style={{ height: '8px', marginTop: '-4px' }}
+              />
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/activity/EventDetailClient.tsx">
+'use client'
+import { Database } from '@/lib/supabase/database.types'
+import RegistrationButton from './RegistrationButton'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+type Props = {
+  activity: Activity
+  initialRegistration: Registration | null
+  initialRegisteredCount: number
+}
+
+export default function EventDetailClient({ activity, initialRegistration, initialRegisteredCount }: Props) {
+  const isFull = activity.capacity ? initialRegisteredCount >= activity.capacity : false
+
+  return (
+    <RegistrationButton
+      activityId={activity.id}
+      initialRegistration={initialRegistration}
+      isFull={isFull}
+    />
+  )
+}
+</file>
+
+<file path="components/membre/activity/RegistrationButton.tsx">
+'use client'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/database.types'
+import { motion } from 'framer-motion'
+
+type Registration = Database['public']['Tables']['event_registrations']['Row']
+
+type Props = {
+  activityId: string
+  initialRegistration: Registration | null
+  isFull: boolean
+}
+
+export default function RegistrationButton({ activityId, initialRegistration, isFull }: Props) {
+  const supabase = createClient()
+  const [registration, setRegistration] = useState<Registration | null>(initialRegistration)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleRegister = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    // UI optimiste : on crée un faux objet en attendant la réponse
+    const optimisticReg: Registration = {
+      id: 'temp-id',
+      activity_id: activityId,
+      user_id: 'me',
+      status: 'confirmed', // ou 'waitlisted' si isFull
+      queue_position: null,
+      attended: null,
+      created_at: new Date().toISOString()
+    }
+    setRegistration(optimisticReg)
+
+    const { error: rpcError } = await supabase.rpc('register_to_activity', { p_activity_id: activityId })
+
+    if (rpcError) {
+      // Rollback en cas d'erreur
+      setRegistration(null)
+      setError("Une erreur est survenue. Réessaie.")
+    } else {
+      // Recharger la vraie donnée pour avoir le bon ID et statut
+      const { data: realReg } = await supabase
+        .from('event_registrations')
+        .select('*')
+        .eq('activity_id', activityId)
+        .eq('user_id', 'me') // Remplacer par l'id réel du user si besoin, mais RLS filtre déjà
+        .single()
+      
+      if (realReg) setRegistration(realReg)
+    }
+    setIsLoading(false)
+  }
+
+  const handleCancel = async () => {
+    if (!registration || registration.id === 'temp-id') return
+    setIsLoading(true)
+    setError(null)
+
+    // UI optimiste
+    const previousState = registration
+    setRegistration(null)
+
+    const { error: rpcError } = await supabase.rpc('cancel_registration', { p_registration_id: registration.id })
+
+    if (rpcError) {
+      // Rollback
+      setRegistration(previousState)
+      setError("Annulation impossible pour le moment.")
+    }
+    setIsLoading(false)
+  }
+
+  // Rendu visuel selon l'état
+  if (registration && registration.status === 'confirmed') {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-success font-mono text-sm">
+          <span className="w-2 h-2 bg-success rounded-full" />
+          Inscrit
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={handleCancel}
+          disabled={isLoading}
+          className="w-full py-3 border border-danger/50 text-danger hover:bg-danger/10 transition-colors font-body text-sm rounded-md disabled:opacity-50"
+        >
+          {isLoading ? 'Annulation...' : 'Se désister'}
+        </motion.button>
+        {error && <p className="text-danger text-xs">{error}</p>}
+      </div>
+    )
+  }
+
+  if (registration && registration.status === 'waitlisted') {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-warning font-mono text-sm">
+          <span className="w-2 h-2 bg-warning rounded-full" />
+          En attente (Position #{registration.queue_position})
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={handleCancel}
+          disabled={isLoading}
+          className="w-full py-3 border border-muted/50 text-muted hover:bg-card transition-colors font-body text-sm rounded-md disabled:opacity-50"
+        >
+          Quitter la file
+        </motion.button>
+        {error && <p className="text-danger text-xs">{error}</p>}
+      </div>
+    )
+  }
+
+  // État non inscrit
+  return (
+    <div className="space-y-2">
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={handleRegister}
+        disabled={isLoading}
+        className={`w-full py-3 font-body text-sm rounded-md transition-colors disabled:opacity-50 ${
+          isFull 
+            ? 'bg-card border border-warning/50 text-warning hover:bg-warning/10' 
+            : 'bg-accent text-bg hover:bg-accent/90 font-medium'
+        }`}
+      >
+        {isLoading ? 'Traitement...' : (isFull ? 'Rejoindre la liste d\'attente' : 'S\'inscrire')}
+      </motion.button>
+      {error && <p className="text-danger text-xs">{error}</p>}
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/announcements/AnnouncementFeed.tsx">
+'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { motion, AnimatePresence } from 'framer-motion'
+
+type Announcement = {
+  id: string
+  title: string
+  content: string | null
+  excerpt: string | null
+  pinned: boolean
+  created_at: string
+  pole_id: string | null
+  poles: { name: string } | null
+}
+
+export default function AnnouncementFeed({ initialAnnouncements }: { initialAnnouncements: Announcement[] }) {
+  const supabase = createClient()
+  const [announcements, setAnnouncements] = useState(initialAnnouncements)
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('announcements-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'announcements' },
+        async (payload) => {
+          // Récupérer l'annonce complète avec la jointure du pôle
+          const { data: newAnnouncement } = await supabase
+            .from('announcements')
+            .select('*, poles(name)')
+            .eq('id', payload.new.id)
+            .single()
+          
+          if (newAnnouncement) {
+            setAnnouncements(prev => [newAnnouncement as Announcement, ...prev])
+          }
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase])
+
+  return (
+    <div className="space-y-4">
+      <AnimatePresence initial={false}>
+        {announcements.map((a) => (
+          <motion.div
+            key={a.id}
+            layout
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className={`bg-card border rounded-md p-5 ${
+              a.pinned ? 'border-accent/40 bg-accent/5' : 'border-card'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                {a.pinned && (
+                  <span className="text-xs font-mono uppercase tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded-sm">
+                    Épinglé
+                  </span>
+                )}
+                {a.poles && (
+                  <span className="text-xs font-mono uppercase tracking-wider text-steel bg-steel/10 px-2 py-0.5 rounded-sm">
+                    {a.poles.name}
+                  </span>
+                )}
+              </div>
+              <time className="text-xs text-muted font-mono shrink-0">
+                {new Date(a.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+              </time>
+            </div>
+            <h2 className="font-display text-xl font-bold text-text mb-2">{a.title}</h2>
+            {a.content && <p className="text-text/80 leading-relaxed whitespace-pre-line">{a.content}</p>}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      
+      {announcements.length === 0 && (
+        <div className="text-center py-16 bg-card rounded-md border border-dashed border-muted/30">
+          <p className="text-muted">Aucune annonce pour le moment.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/calendrier/CalendarClient.tsx">
+'use client'
+import { useState } from 'react'
+import { Database } from '@/lib/supabase/database.types'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+
+export default function CalendarClient({ initialActivities }: { initialActivities: Activity[] }) {
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
+  
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  const daysInMonth = lastDay.getDate()
+  const startingDayOfWeek = (firstDay.getDay() + 6) % 7 // Lundi = 0
+
+  const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+
+  const activitiesThisMonth = initialActivities.filter(a => {
+    const d = new Date(a.date_start)
+    return d.getFullYear() === year && d.getMonth() === month
+  })
+
+  const getActivitiesForDay = (day: number) => {
+    return activitiesThisMonth.filter(a => new Date(a.date_start).getDate() === day)
+  }
+
+  const typeColors: Record<Activity['type'], string> = {
+    event: 'bg-steel',
+    visit: 'bg-accent',
+    formation: 'bg-success'
+  }
+
+  const selectedDayActivities = selectedDate ? getActivitiesForDay(selectedDate.getDate()) : []
+
+  const changeMonth = (dir: number) => {
+    setCurrentDate(new Date(year, month + dir, 1))
+    setSelectedDate(null)
+  }
+
+  return (
+    <div className="panel-surface rounded-md p-4 md:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-display text-xl font-bold">
+          {monthNames[month]} <span className="text-muted font-mono">{year}</span>
+        </h2>
+        <div className="flex gap-2">
+          <button onClick={() => changeMonth(-1)} className="flex h-8 w-8 items-center justify-center rounded-sm bg-bg text-muted transition-colors hover:bg-muted/20 hover:text-text">‹</button>
+          <button onClick={() => changeMonth(1)} className="flex h-8 w-8 items-center justify-center rounded-sm bg-bg text-muted transition-colors hover:bg-muted/20 hover:text-text">›</button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2">
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
+          <div key={i} className="text-center text-xs font-mono text-muted uppercase py-2">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 md:gap-2">
+        {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+          <div key={`empty-${i}`} className="aspect-square" />
+        ))}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1
+          const dayActivities = getActivitiesForDay(day)
+          const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === month
+          const isToday = new Date().toDateString() === new Date(year, month, day).toDateString()
+          
+          return (
+            <button
+              key={day}
+              onClick={() => setSelectedDate(new Date(year, month, day))}
+              className={`relative aspect-square rounded-sm border transition-colors flex flex-col items-center justify-center ${
+                isSelected ? 'border-accent bg-accent/10' : 'border-transparent hover:border-muted/30 hover:bg-bg/50'
+              } ${isToday && !isSelected ? 'border-steel' : ''}`}
+            >
+              <span className={`text-sm font-mono ${isToday ? 'text-steel font-bold' : 'text-text'}`}>{day}</span>
+              {dayActivities.length > 0 && (
+                <div className="flex gap-0.5 absolute bottom-1.5">
+                  {dayActivities.slice(0, 3).map(act => (
+                    <div key={act.id} className={`w-1.5 h-1.5 rounded-full ${typeColors[act.type]}`} />
+                  ))}
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Détails du jour sélectionné */}
+      <AnimatePresence>
+        {selectedDate && selectedDayActivities.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-6 overflow-hidden border-t border-muted/10 pt-6"
+          >
+            <h3 className="font-display font-semibold mb-3">
+              {selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </h3>
+            <div className="space-y-2">
+              {selectedDayActivities.map(act => {
+                const basePath = act.type === 'event' ? 'evenements' : act.type === 'visit' ? 'visites' : 'formations'
+                return (
+                  <Link 
+                    key={act.id} 
+                    href={`/membre/${basePath}/${act.id}`}
+                    className="group flex items-center gap-3 rounded-sm bg-bg/70 p-3 transition-all hover:-translate-y-0.5 hover:bg-muted/10"
+                  >
+                    <div className={`w-1 h-8 ${typeColors[act.type]}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-text group-hover:text-accent transition-colors">{act.title}</p>
+                      <p className="text-xs text-muted font-mono">
+                        {new Date(act.date_start).getHours()}h{new Date(act.date_start).getMinutes().toString().padStart(2, '0')}
+                      </p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/dashboard/AnimatedAnnouncementList.tsx">
+'use client'
+
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+
+type Announcement = {
+  id: string
+  title: string
+  excerpt: string | null
+  created_at: string
+}
+
+export default function AnimatedAnnouncementList({ announcements }: { announcements: Announcement[] }) {
+  return (
+    <ul className="space-y-3">
+      {announcements.map((a) => (
+        <motion.li
+          key={a.id}
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="panel-surface panel-interactive rounded-md p-4"
+        >
+          <Link href="/membre/annonces" className="block">
+            <h3 className="font-medium text-text hover:text-accent transition-colors">{a.title}</h3>
+            <p className="text-sm text-muted mt-1 line-clamp-2">{a.excerpt}</p>
+          </Link>
+        </motion.li>
+      ))}
+    </ul>
+  )
+}
+</file>
+
+<file path="components/membre/dashboard/AnimatedPoints.tsx">
+'use client'
+
+import { motion } from 'framer-motion'
+
+export default function AnimatedPoints({ points }: { points: number }) {
+  return (
+    <motion.p
+      className="font-mono text-4xl font-bold text-accent"
+      initial={{ opacity: 0, y: 6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {points}
+    </motion.p>
+  )
+}
+</file>
+
+<file path="components/membre/leaderboard/LeaderboardClient.tsx">
+'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/database.types'
+import { motion, AnimatePresence } from 'framer-motion'
+
+type LeaderboardEntry = Database['public']['Views']['leaderboard']['Row']
+
+export default function LeaderboardClient({ 
+  initialLeaderboard, 
+  currentUserId 
+}: { 
+  initialLeaderboard: LeaderboardEntry[], 
+  currentUserId: string 
+}) {
+  const supabase = createClient()
+  const [entries, setEntries] = useState(initialLeaderboard)
+
+  useEffect(() => {
+    // Abonnement Realtime sur la table profiles
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
+        async () => {
+          // Quand un profil est mis à jour (ex: points crédités), on refetch la vue
+          // C'est plus simple et plus sûr que de recalculer le rang côté client
+          const { data: newLeaderboard } = await supabase
+            .from('leaderboard')
+            .select('*')
+            .order('rank', { ascending: true })
+          
+          if (newLeaderboard) setEntries(newLeaderboard as LeaderboardEntry[])
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase])
+
+  const top3 = entries.slice(0, 3)
+  const rest = entries.slice(3)
+  
+  // Couleurs du podium
+  const podiumStyles = [
+    'order-2 md:order-1 h-32 md:h-40', // 1er (au centre sur mobile, à gauche sur desktop)
+    'order-1 md:order-2 h-40 md:h-48', // 2ème (plus haut)
+    'order-3 md:order-3 h-28 md:h-32'  // 3ème
+  ]
+  const podiumColors = [
+    'border-accent text-accent', // Or
+    'border-muted text-text',
+    'border-steel text-steel'
+  ]
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-3 gap-2 md:gap-4 items-end">
+        {top3.map((entry, idx) => {
+          const visualIndex = entry.rank === 1 ? 1 : entry.rank === 2 ? 0 : 2
+          return (
+            <motion.div 
+              key={entry.user_id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1, type: 'spring', stiffness: 100 }}
+              className={`panel-surface flex flex-col items-center justify-end rounded-md border-b-2 p-4 ${podiumStyles[visualIndex]} ${podiumColors[visualIndex]}`}
+            >
+              <div className="w-12 h-12 rounded-full bg-bg flex items-center justify-center mb-2 border border-muted/20">
+                <span className="font-display font-bold text-lg">
+                  {entry.first_name?.[0]}{entry.last_name?.[0]}
+                </span>
+              </div>
+              <span className="font-medium text-sm text-text text-center truncate w-full">
+                {entry.first_name} {entry.last_name}
+              </span>
+              <span className="font-mono text-2xl font-bold mt-1">{entry.points_total}</span>
+              <span className="text-xs text-muted font-mono">#{entry.rank}</span>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <div className="panel-surface overflow-hidden rounded-md">
+        <AnimatePresence>
+          {rest.map((entry) => (
+            <motion.div
+              key={entry.user_id}
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={`flex items-center justify-between border-b border-bg/50 p-4 transition-colors last:border-b-0 ${
+                entry.user_id === currentUserId ? 'bg-accent/5 border-l-2 border-l-accent' : 'hover:bg-bg/30'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 w-12">
+                  <span className="font-mono text-muted text-sm">{entry.rank}</span>
+                  <div className="h-3 w-px bg-muted/30" />
+                </div>
+                <div>
+                  <p className="font-medium text-text">
+                    {entry.first_name} {entry.last_name}
+                    {entry.user_id === currentUserId && <span className="text-accent text-xs ml-2">(Toi)</span>}
+                  </p>
+                  <p className="text-xs text-muted">{entry.pole_name || 'Membre'}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-mono font-bold text-accent text-lg">{entry.points_total}</p>
+                <p className="text-[10px] uppercase text-muted tracking-wider">points</p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/pole/ActivityForm.tsx">
+'use client'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { Database } from '@/lib/supabase/database.types'
+
+export default function ActivityForm({ poleId }: { poleId: string }) {
+  const supabase = createClient()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'event' as Database['public']['Tables']['activities']['Row']['type'],
+    description: '',
+    location: '',
+    date_start: '',
+    capacity: '',
+    prerequisites: ''
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    const { data, error: insertError } = await supabase
+      .from('activities')
+      .insert({
+        title: formData.title,
+        type: formData.type,
+        description: formData.description || null,
+        location: formData.location || null,
+        date_start: new Date(formData.date_start).toISOString(),
+        capacity: formData.capacity ? parseInt(formData.capacity) : null,
+        prerequisites: formData.prerequisites || null,
+        pole_id: poleId
+      })
+      .select('id, type')
+      .single()
+
+    const createdActivity = data as { id: string; type: 'event' | 'visit' | 'formation' } | null
+
+    if (insertError) {
+      setError("Erreur lors de la création. Vérifie les champs.")
+      setIsLoading(false)
+    } else {
+      const path = createdActivity?.type === 'event' ? 'evenements' : createdActivity?.type === 'visit' ? 'visites' : 'formations'
+      router.push(`/membre/${path}/${createdActivity?.id}`)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="panel-surface space-y-4 rounded-md p-6">
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Titre</label>
+        <input
+          type="text"
+          name="title"
+          required
+          value={formData.title}
+          onChange={handleChange}
+          className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base text-text outline-none transition-colors focus:border-accent"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Type</label>
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base text-text outline-none transition-colors focus:border-accent"
+          >
+            <option value="event">Événement</option>
+            <option value="visit">Visite</option>
+            <option value="formation">Formation</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Capacité</label>
+          <input
+            type="number"
+            name="capacity"
+            min="1"
+            value={formData.capacity}
+            onChange={handleChange}
+            className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base font-mono text-text outline-none transition-colors focus:border-accent"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Date & Heure</label>
+        <input
+          type="datetime-local"
+          name="date_start"
+          required
+          value={formData.date_start}
+          onChange={handleChange}
+          className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base font-mono text-text outline-none transition-colors focus:border-accent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Lieu</label>
+        <input
+          type="text"
+          name="location"
+          value={formData.location}
+          onChange={handleChange}
+          className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base text-text outline-none transition-colors focus:border-accent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Description</label>
+        <textarea
+          name="description"
+          rows={4}
+          value={formData.description}
+          onChange={handleChange}
+          className="w-full resize-none rounded-sm border border-card bg-bg px-3 py-2 text-base text-text outline-none transition-colors focus:border-accent"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-wider text-muted mb-1.5">Prérequis (Visites uniquement)</label>
+        <input
+          type="text"
+          name="prerequisites"
+          value={formData.prerequisites}
+          onChange={handleChange}
+          placeholder="Ex: Carte étudiante, tenue obligatoire..."
+          className="w-full rounded-sm border border-card bg-bg px-3 py-2 text-base text-text outline-none transition-colors focus:border-accent"
+        />
+      </div>
+
+      {error && <p className="text-danger text-sm">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="mt-4 w-full rounded-sm bg-gradient-gold py-3 font-medium text-bg transition-all hover:-translate-y-0.5 hover:shadow-gold-glow disabled:opacity-50"
+      >
+        {isLoading ? 'Création...' : 'Créer l\'activité'}
+      </button>
+    </form>
+  )
+}
+</file>
+
+<file path="components/membre/pole/PresenceTracker.tsx">
+'use client'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/database.types'
+import { motion } from 'framer-motion'
+
+export type Registration = Database['public']['Tables']['event_registrations']['Row'] & {
+  profiles: { first_name: string | null, last_name: string | null } | null
+}
+
+export default function PresenceTracker({ registrations }: { registrations: Registration[] }) {
+  const supabase = createClient()
+  const [regs, setRegs] = useState(registrations)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+
+  const togglePresence = async (regId: string, currentStatus: boolean | null) => {
+    setUpdatingId(regId)
+    const newStatus = !currentStatus
+
+    // Optimistic UI
+    setRegs(prev => prev.map(r => r.id === regId ? { ...r, attended: newStatus } : r))
+
+    const { error } = await supabase
+      .from('event_registrations')
+      .update({ attended: newStatus })
+      .eq('id', regId)
+
+    if (error) {
+      // Rollback
+      setRegs(prev => prev.map(r => r.id === regId ? { ...r, attended: currentStatus } : r))
+    }
+    setUpdatingId(null)
+  }
+
+  return (
+    <div className="panel-surface overflow-hidden rounded-md">
+      <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-3 border-b border-muted/10 bg-bg/30">
+        <span className="text-xs font-mono uppercase tracking-wider text-muted">Membre</span>
+        <span className="text-xs font-mono uppercase tracking-wider text-muted">Présence</span>
+      </div>
+      
+      {regs.length === 0 ? (
+        <p className="p-4 text-center text-muted text-sm">Aucun membre inscrit confirmé.</p>
+      ) : (
+        regs.map((reg) => (
+          <div 
+            key={reg.id} 
+            className={`grid grid-cols-[1fr_auto] gap-4 px-4 py-3 border-b border-bg/50 last:border-b-0 items-center transition-colors ${
+              reg.attended ? 'bg-success/5' : 'hover:bg-bg/30'
+            }`}
+          >
+            <div>
+              <p className="text-sm font-medium text-text">
+                {reg.profiles?.first_name} {reg.profiles?.last_name}
+              </p>
+            </div>
+            <button
+              onClick={() => togglePresence(reg.id, reg.attended)}
+              disabled={updatingId === reg.id}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                reg.attended ? 'bg-success' : 'bg-muted/30'
+              } disabled:opacity-50`}
+            >
+              <motion.div 
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                className={`absolute top-0.5 w-5 h-5 bg-bg rounded-full ${
+                  reg.attended ? 'right-0.5' : 'left-0.5'
+                }`}
+              />
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/projects/KanbanBoard.tsx">
+'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/lib/supabase/database.types'
+import { motion, AnimatePresence } from 'framer-motion'
+
+type Task = Database['public']['Tables']['project_tasks']['Row']
+
+type Props = {
+  projectId: string
+  initialTasks: Task[]
+  isMember: boolean
+}
+
+const COLUMNS = [
+  { id: 'todo', label: 'À faire' },
+  { id: 'in_progress', label: 'En cours' },
+  { id: 'done', label: 'Terminé' },
+] as const
+
+export default function KanbanBoard({ projectId, initialTasks, isMember }: Props) {
+  const supabase = createClient()
+  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+
+  // Realtime: écouter les changements de tâches
+  useEffect(() => {
+    const channel = supabase
+      .channel(`project-${projectId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'project_tasks', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            setTasks(prev => prev.map(t => t.id === payload.new.id ? payload.new as Task : t))
+          } else if (payload.eventType === 'INSERT') {
+            setTasks(prev => prev.some(t => t.id === payload.new.id) ? prev : [...prev, payload.new as Task])
+          } else if (payload.eventType === 'DELETE') {
+            setTasks(prev => prev.filter(t => t.id !== payload.old.id))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [projectId, supabase])
+
+  const handleDrop = async (taskId: string, newStatus: string) => {
+    setDraggingId(null)
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || task.status === newStatus) return
+
+    // Optimistic UI
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus as Task['status'] } : t))
+
+    // Persistance
+    const { error } = await supabase
+      .from('project_tasks')
+      .update({ status: newStatus as Task['status'] })
+      .eq('id', taskId)
+
+    if (error) {
+      // Rollback
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: task.status } : t))
+      console.error('Erreur de déplacement', error)
+    }
+  }
+
+  return (
+    <div className="flex flex-col md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none pb-4">
+      {COLUMNS.map((col) => {
+        const colTasks = tasks.filter(t => t.status === col.id)
+        
+        return (
+          <div 
+            key={col.id} 
+            className="bg-card/50 border border-card rounded-md p-3 min-w-[80vw] md:min-w-0 snap-center md:snap-none flex flex-col"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              const taskId = e.dataTransfer.getData('taskId')
+              if (taskId) handleDrop(taskId, col.id)
+            }}
+          >
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-muted/10">
+              <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-muted">{col.label}</h3>
+              <span className="text-xs font-mono text-muted bg-bg px-2 py-0.5 rounded-sm">{colTasks.length}</span>
+            </div>
+
+            <div className="space-y-2 flex-1 min-h-[100px]">
+              <AnimatePresence>
+                {colTasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    draggable={isMember}
+                    onDragStart={(e: unknown) => {
+                      const event = e as React.DragEvent<HTMLDivElement>
+                      event.dataTransfer.setData('taskId', task.id)
+                      setDraggingId(task.id)
+                    }}
+                    onDragEnd={() => setDraggingId(null)}
+                    className={`bg-bg border border-card p-3 rounded-sm cursor-grab active:cursor-grabbing hover:border-accent/30 transition-colors ${
+                      draggingId === task.id ? 'opacity-50' : ''
+                    }`}
+                  >
+                    <p className="text-sm text-text font-body">{task.title}</p>
+                    {task.assignee_id && (
+                      <div className="mt-2 flex justify-end">
+                        <span className="text-xs text-muted font-mono">Assigné</span>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              
+              {colTasks.length === 0 && (
+                <div className="h-full flex items-center justify-center text-xs text-muted/50 italic py-4">
+                  Glisse une tâche ici
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+</file>
+
+<file path="components/membre/shared/DimensionDivider.tsx">
+type Props = {
+  label?: string
+}
+
+export default function DimensionDivider({ label }: Props) {
+  return (
+    <div className="relative flex items-center py-4 my-2">
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-accent/35 to-steel/30" />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-px h-2 bg-accent/40" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-2 bg-steel/40" />
+      {label && (
+        <span className="px-3 text-xs font-mono uppercase tracking-widest text-muted bg-bg">
+          {label}
+        </span>
+      )}
+      <div className="flex-1 h-px bg-gradient-to-r from-steel/30 via-accent/35 to-transparent" />
+    </div>
+  )
+}
+</file>
+
+<file path="lib/supabase/client.ts">
+import { createBrowserClient } from '@supabase/ssr'
+import { Database } from './database.types'
+
+export const createClient = () => createBrowserClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+</file>
+
+<file path="lib/supabase/database.types.ts">
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          first_name: string | null
+          last_name: string | null
+          role: 'member' | 'pole_lead' | 'admin'
+          pole_id: string | null
+          points_total: number
+          year: string | null
+        }
+        Insert: { id: string } & Partial<Database['public']['Tables']['profiles']['Row']>
+        Update: Partial<Database['public']['Tables']['profiles']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_pole_id_fkey'
+            columns: ['pole_id']
+            isOneToOne: false
+            referencedRelation: 'poles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      poles: {
+        Row: { id: string; name: string; slug: string }
+        Insert: Partial<Database['public']['Tables']['poles']['Row']>
+        Update: Partial<Database['public']['Tables']['poles']['Row']>
+        Relationships: []
+      }
+      activities: {
+        Row: {
+          id: string
+          title: string
+          type: 'event' | 'visit' | 'formation'
+          description: string | null
+          date_start: string
+          date_end: string | null
+          location: string | null
+          capacity: number | null
+          pole_id: string | null
+          prerequisites: string | null
+          recap_url: string | null
+          training_material_url: string | null
+          trainer_name: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['activities']['Row']>
+        Update: Partial<Database['public']['Tables']['activities']['Row']>
+        Relationships: []
+      }
+      event_registrations: {
+        Row: {
+          id: string
+          activity_id: string
+          user_id: string
+          status: 'confirmed' | 'waitlisted'
+          queue_position: number | null
+          attended: boolean | null
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['event_registrations']['Row']>
+        Update: Partial<Database['public']['Tables']['event_registrations']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'event_registrations_activity_id_fkey'
+            columns: ['activity_id']
+            isOneToOne: false
+            referencedRelation: 'activities'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'event_registrations_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      projects: {
+        Row: {
+          id: string
+          title: string
+          lead_id: string | null
+          deadline: string | null
+          pole_id: string | null
+          progress: number
+          status: 'todo' | 'in_progress' | 'done'
+        }
+        Insert: Partial<Database['public']['Tables']['projects']['Row']>
+        Update: Partial<Database['public']['Tables']['projects']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'projects_pole_id_fkey'
+            columns: ['pole_id']
+            isOneToOne: false
+            referencedRelation: 'poles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'projects_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      project_members: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: Partial<Database['public']['Tables']['project_members']['Row']>
+        Update: Partial<Database['public']['Tables']['project_members']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'project_members_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'project_members_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      project_tasks: {
+        Row: {
+          id: string
+          project_id: string
+          title: string
+          status: 'todo' | 'in_progress' | 'done'
+          assignee_id: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['project_tasks']['Row']>
+        Update: Partial<Database['public']['Tables']['project_tasks']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'project_tasks_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'project_tasks_assignee_id_fkey'
+            columns: ['assignee_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      announcements: {
+        Row: {
+          id: string
+          title: string
+          content: string | null
+          excerpt: string | null
+          pinned: boolean
+          created_at: string
+          pole_id: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['announcements']['Row']>
+        Update: Partial<Database['public']['Tables']['announcements']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'announcements_pole_id_fkey'
+            columns: ['pole_id']
+            isOneToOne: false
+            referencedRelation: 'poles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      resources: {
+        Row: {
+          id: string
+          title: string
+          file_url: string
+          category: string | null
+          pole_id: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['resources']['Row']>
+        Update: Partial<Database['public']['Tables']['resources']['Row']>
+        Relationships: [
+          {
+            foreignKeyName: 'resources_pole_id_fkey'
+            columns: ['pole_id']
+            isOneToOne: false
+            referencedRelation: 'poles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      points_log: {
+        Row: {
+          id: string
+          user_id: string
+          reason: string
+          amount: number
+          created_at: string
+        }
+        Insert: Partial<Database['public']['Tables']['points_log']['Row']>
+        Update: Partial<Database['public']['Tables']['points_log']['Row']>
+        Relationships: []
+      }
+    }
+    Views: {
+      leaderboard: {
+        Row: {
+          user_id: string
+          first_name: string | null
+          last_name: string | null
+          points_total: number
+          rank: number
+          pole_name: string | null
+        }
+        Relationships: []
+      }
+    }
+    Functions: {
+      register_to_activity: { Args: { p_activity_id: string }; Returns: undefined }
+      cancel_registration: { Args: { p_registration_id: string }; Returns: undefined }
+    }
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
+  }
+}
+</file>
+
+<file path="lib/supabase/server.ts">
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { Database } from './database.types'
+
+export const createClient = async () => {
+  const cookieStore = await cookies()
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch (error) {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
+</file>
+
+<file path="lib/utils.ts">
+import { Database } from '@/lib/supabase/database.types'
+
+type Activity = Database['public']['Tables']['activities']['Row']
+
+export function formatActivityDate(dateString: string): string {
+  const date = new Date(dateString)
+  const days = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.']
+  const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
+  
+  const dayName = days[date.getDay()]
+  const dayNum = date.getDate()
+  const monthName = months[date.getMonth()]
+  const hours = date.getHours().toString().padStart(2, '0')
+  const mins = date.getMinutes().toString().padStart(2, '0')
+
+  return `${dayName}. ${dayNum} ${monthName} · ${hours}h${mins}`
+}
+
+export function getActivityTypeLabel(type: Activity['type']): string {
+  switch (type) {
+    case 'event': return 'Événement'
+    case 'visit': return 'Visite'
+    case 'formation': return 'Formation'
+    default: return 'Activité'
+  }
+}
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="AGENTS.md">
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+</file>
+
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "cgi-enit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.8",
+    "framer-motion": "^12.42.2",
+    "next": "16.2.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "supabase": "^2.109.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="proxy.ts">
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  // Création d'un client Supabase spécifique au proxy
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Si pas d'utilisateur authentifié et route protégée -> /login
+  if (!user && (
+    request.nextUrl.pathname.startsWith('/membre') ||
+    request.nextUrl.pathname.startsWith('/pole') ||
+    request.nextUrl.pathname.startsWith('/admin')
+  )) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('error', 'no_user_proxy')
+    return NextResponse.redirect(url)
+  }
+
+  return supabaseResponse
+}
+
+export const config = {
+  matcher: ['/membre', '/membre/:path*', '/pole/:path*', '/admin/:path*'],
+}
+</file>
+
+<file path="README.md">
+# 🚀 CGI-ENIT — Club Génie Informatique (ENIT)
+
+> Plateforme web officielle du Club Génie Informatique de l'École Nationale d'Ingénieurs de Tunis.
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/Frontend-React%20%2F%20Tailwind-61dafb)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange)
+
+---
+
+## 📌 À propos du projet
+
+Cette plateforme permet de gérer et de promouvoir les activités du club **CGI-ENIT** :
+* 📅 **Événements & Workshops :** Consultation et inscription aux événements / hackathons.
+* 👥 **Membres & Bureau :** Présentation des membres et de l'équipe exécutive.
+* 📝 **Blog / Actualités :** Articles techniques et récapitulatifs des activités du club.
+* 📩 **Contact & Adhésion :** Formulaires d'interaction directe avec le club.
+
+---
+
+## 🛠️ Stack Technique
+
+| Domaine | Technologies |
+| :--- | :--- |
+| **Frontend** | React.js / Next.js, Tailwind CSS, Lucide React (Icones) |
+| **State Management** | Zustand / TanStack Query |
+| **Outillage** | Vite / Next.js, ESLint, Prettier |
+| **CI/CD & Deploy** | GitHub Actions, Vercel / Netlify |
+
+---
+
+## 🚀 Installation & Lancement rapide
+
+### Prérequis
+* **Node.js** `>= 18.x`
+* **npm** ou **pnpm** / **yarn**
+
+### Étapes d'installation
+
+1. **Cloner le projet :**
+   ```bash
+   git clone [https://github.com/BacemGarrouch/CGI-ENIT.git](https://github.com/BacemGarrouch/CGI-ENIT.git)
+   cd CGI-ENIT
+</file>
+
+<file path="tailwind.config.ts">
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        bg: '#040A17', // Deep Midnight Blue
+        card: '#0C1426', // Rich Slate Navy Card
+        'card-hover': '#15243F',
+        accent: '#B58C2A', // Dark Gold
+        'accent-dark': '#7E6219',
+        'accent-light': '#E5C66A',
+        steel: '#2F5C9F', // Industrial Blue
+        'steel-dark': '#1C3768',
+        text: '#F3F6FD',
+        muted: '#91A3BE',
+        border: 'rgba(181, 140, 42, 0.18)',
+        'blue-900': '#06112A',
+        'blue-800': '#0B1C45',
+        'blue-700': '#173575',
+        'gold-700': '#8C6A1F',
+        'gold-600': '#A67E28',
+        'gold-500': '#C29A36',
+        'gold-400': '#D8B76A',
+        surface: '#101C34',
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
+      },
+      fontFamily: {
+        display: ['var(--font-space-grotesk)', 'sans-serif'],
+        body: ['var(--font-inter)', 'sans-serif'],
+        mono: ['var(--font-ibm-plex-mono)', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '4px',
+        md: '8px',
+        lg: '12px',
+        xl: '16px',
+        '2xl': '24px',
+      },
+      boxShadow: {
+        'gold-glow': '0 0 18px -6px rgba(197, 152, 48, 0.5)',
+        'gold-glow-lg': '0 0 30px -8px rgba(197, 152, 48, 0.55)',
+        'blue-glow': '0 0 18px -6px rgba(38, 77, 145, 0.55)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        panel: '0 10px 30px -20px rgba(0, 0, 0, 0.9)',
+      },
+      backgroundImage: {
+        'gradient-gold': 'linear-gradient(135deg, #E5C66A 0%, #B58C2A 50%, #7E6219 100%)',
+        'gradient-navy': 'linear-gradient(180deg, #0A1633 0%, #040A17 100%)',
+        'gradient-card': 'linear-gradient(145deg, rgba(12, 20, 38, 0.88) 0%, rgba(7, 13, 29, 0.94) 100%)',
+        'gradient-steel': 'linear-gradient(135deg, #2F5C9F 0%, #1C3768 100%)',
+        'gradient-industrial': 'linear-gradient(120deg, rgba(12, 20, 38, 0.96) 0%, rgba(23, 53, 117, 0.34) 54%, rgba(181, 140, 42, 0.22) 100%)',
+      },
+      animation: {
+        'pulse-glow': 'pulse-glow 3.2s infinite ease-in-out',
+        'spin-slow': 'spin 20s linear infinite',
+        'shimmer': 'shimmer 2.8s infinite linear',
+        'float-gentle': 'float-gentle 6s ease-in-out infinite',
+        'scanline': 'scanline 8s linear infinite',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 12px -1px rgba(181, 140, 42, 0.22)' },
+          '50%': { boxShadow: '0 0 24px 2px rgba(181, 140, 42, 0.42)' },
+        },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'float-gentle': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        scanline: {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '0 48px' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+export default config
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+</files>
