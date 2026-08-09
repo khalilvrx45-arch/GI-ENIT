@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Mail, Users, FileText, MessageSquare, Settings, LogOut } from "lucide-react";
+import { Mail, Users, FileText, MessageSquare, Settings, LogOut, Image, Sparkles, FolderGit2 } from "lucide-react";
 
 export interface NavItem {
   id: string;
@@ -13,9 +13,12 @@ export interface NavItem {
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { id: "invitations", label: "Invitations", icon: Mail },
   { id: "membres", label: "Membres", icon: Users },
+  { id: "projets", label: "Gestion des Projets", icon: FolderGit2 },
+  { id: "activities", label: "Activités du Club", icon: Sparkles },
+  { id: "hero", label: "Hero Carousel", icon: Image },
   { id: "contenu", label: "Contenu", icon: FileText, isComingSoon: true },
   { id: "temoignages", label: "Témoignages", icon: MessageSquare, isComingSoon: true },
-  { id: "parametres", label: "Paramètres", icon: Settings, isComingSoon: true },
+  { id: "parametres", label: "Logo & Marque", icon: Settings },
 ];
 
 interface SidebarProps {

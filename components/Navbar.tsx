@@ -4,10 +4,16 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { logoUrl } = useSiteSettings();
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,13 +27,37 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const supabase = createClient();
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push('/login');
+    router.refresh();
+  };
+
   const navLinks = [
-    { name: "Accueil", href: "#hero" },
-    { name: "À Propos & Historique", href: "#about" },
-    { name: "Activités", href: "#activities" },
-    { name: "Roadmaps", href: "#roadmaps" },
-    { name: "Témoignages", href: "#testimonials" },
-    { name: "Développeurs", href: "#developers" },
+    { name: "Accueil", href: "/#hero" },
+    { name: "À Propos & Historique", href: "/#about" },
+    { name: "Activités du Club", href: "/#activities" },
+    { name: "Roadmaps", href: "/#roadmaps" },
+    { name: "Témoignages", href: "/#testimonials" },
   ];
 
   return (
@@ -37,26 +67,26 @@ export default function Navbar() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${
         scrolled
-          ? "bg-black/90 backdrop-blur-lg border-custom-navy/60 py-3 shadow-[0_4px_30px_rgba(20,33,61,0.1)]"
-          : "bg-transparent border-transparent py-5"
+          ? "bg-black/90 backdrop-blur-xl border-custom-navy/60 py-3 shadow-2xl"
+          : "bg-gradient-to-b from-black/90 via-black/40 to-transparent border-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <motion.div 
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden bg-black border border-custom-amber/20 group-hover:border-custom-amber transition-colors duration-300 shadow-[0_0_15px_rgba(252,163,17,0.05)] group-hover:shadow-[0_0_20px_rgba(252,163,17,0.15)]"
+              className="relative flex items-center justify-center w-12 h-12 rounded-2xl overflow-hidden bg-[#121414] border-2 border-custom-amber/40 group-hover:border-custom-amber transition-all duration-300 shadow-[0_0_20px_rgba(252,163,17,0.25)] group-hover:shadow-[0_0_30px_rgba(252,163,17,0.5)] flex-shrink-0"
             >
-              <img src="/logo-cgi.jpg" alt="CGI ENIT Logo" className="w-full h-full object-cover" />
+              <img src={logoUrl} alt="CGI ENIT Logo" className="w-full h-full object-contain p-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
             </motion.div>
             <div className="flex flex-col">
-              <span className="text-custom-white font-extrabold text-sm tracking-wide leading-none group-hover:text-custom-amber transition-colors duration-300">
+              <span className="text-white font-black text-base tracking-wide leading-none group-hover:text-custom-amber transition-colors duration-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                 CGI ENIT
               </span>
-              <span className="text-[10px] text-custom-gray/50 uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-custom-amber/90 uppercase tracking-widest mt-1 drop-shadow">
                 Génie Industriel
               </span>
             </div>
@@ -84,20 +114,40 @@ export default function Navbar() {
 
           {/* Desktop CTA Button */}
           <motion.div 
-            className="hidden md:flex items-center"
+            className="hidden md:flex items-center gap-4"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.5 }}
           >
-            <Link
-              href="/login"
-              className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-custom-amber text-custom-black font-bold text-xs tracking-wider uppercase overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] shadow-[0_0_20px_rgba(252,163,17,0.15)] hover:shadow-[0_0_25px_rgba(252,163,17,0.35)]"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <span>Connexion Portal</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
+            {user ? (
+              <>
+                <button
+                  onClick={handleLogout}
+                  className="text-[10px] font-bold text-custom-gray hover:text-red-400 transition-colors uppercase tracking-wider"
+                >
+                  Déconnexion
+                </button>
+                <Link
+                  href="/login"
+                  className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-custom-amber text-custom-black font-bold text-xs tracking-wider uppercase overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] shadow-[0_0_20px_rgba(252,163,17,0.15)] hover:shadow-[0_0_25px_rgba(252,163,17,0.35)]"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span>Mon Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-custom-amber text-custom-black font-bold text-xs tracking-wider uppercase overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] shadow-[0_0_20px_rgba(252,163,17,0.15)] hover:shadow-[0_0_25px_rgba(252,163,17,0.35)]"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span>Connexion Portal</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Link>
+            )}
           </motion.div>
 
           {/* Mobile Menu Button */}
@@ -135,14 +185,37 @@ export default function Navbar() {
                   {link.name}
                 </a>
               ))}
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-custom-amber text-custom-black font-bold text-sm tracking-wider uppercase hover:bg-custom-amber/90 transition-colors mt-4"
-              >
-                <span>Connexion Portal</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              
+              {user ? (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-custom-amber text-custom-black font-bold text-sm tracking-wider uppercase hover:bg-custom-amber/90 transition-colors mt-4"
+                  >
+                    <span>Mon Dashboard</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="w-full mt-2 text-xs font-bold text-custom-gray hover:text-red-400 py-3 uppercase tracking-wider text-center transition-colors"
+                  >
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-custom-amber text-custom-black font-bold text-sm tracking-wider uppercase hover:bg-custom-amber/90 transition-colors mt-4"
+                >
+                  <span>Connexion Portal</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
