@@ -53,3 +53,44 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #fca311;
 }
+
+/* ═══════════════════════════════════════
+   MEMBRE INTERFACE — Unified Design System
+   ═══════════════════════════════════════ */
+
+.text-gold-gradient {
+  color: #fca311;
+}
+
+.text-steel-gradient {
+  color: #ffffff;
+}
+
+.glass-panel {
+  background: #141515;
+  border: 1px solid #2a2c2c;
+}
+
+.glass-panel-hover {
+  transition: all 0.2s ease;
+}
+.glass-panel-hover:hover {
+  background: #1e2020;
+  border-color: #fca311;
+  transform: translateY(-2px);
+}
+
+.panel-surface {
+  background: #141515;
+  border: 1px solid #2a2c2c;
+  border-radius: 1rem;
+}
+
+.panel-interactive {
+  transition: border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
+}
+
+.panel-interactive:hover {
+  border-color: #fca311;
+  transform: translateY(-2px);
+}

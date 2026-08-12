@@ -4,9 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Linkedin, Instagram, Facebook, Globe, Cpu } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { logoUrl } = useSiteSettings();
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -39,7 +41,7 @@ export default function Footer() {
           <motion.div variants={itemVariants} className="space-y-4">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="relative flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden bg-black border border-custom-amber/20 group-hover:border-custom-amber transition-colors">
-                <img src="/logo-cgi.jpg" alt="CGI ENIT Logo" className="w-full h-full object-cover" />
+                <img src={logoUrl} alt="CGI ENIT Logo" className="w-full h-full object-contain p-1" />
               </div>
               <div className="flex flex-col">
                 <span className="text-custom-white font-extrabold text-sm tracking-wide leading-none group-hover:text-custom-amber transition-colors">
@@ -72,12 +74,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#activities" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
-                  Activités
+                <a href="/#activities" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
+                  Activités du Club
                 </a>
               </li>
               <li>
-                <a href="#roadmaps" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
+                <a href="/#roadmaps" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
                   Roadmaps Industrielles
                 </a>
               </li>
@@ -91,14 +93,14 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#testimonials" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
+                <a href="/#testimonials" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
                   Témoignages
                 </a>
               </li>
               <li>
-                <a href="#developers" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
-                  Développeurs
-                </a>
+                <Link href="/activities" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
+                  Toutes les activités
+                </Link>
               </li>
               <li>
                 <Link href="/login" className="text-custom-gray/60 hover:text-custom-amber transition-colors">
