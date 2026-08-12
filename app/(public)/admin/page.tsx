@@ -39,6 +39,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Menu,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/utils/imageCompressor";
@@ -95,6 +96,7 @@ export interface ActivityRecord {
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState("invitations");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
@@ -765,13 +767,27 @@ export default function AdminDashboardPage() {
         activeItem={activeTab}
         onSelectTab={setActiveTab}
         onSignOut={handleSignOut}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar Header */}
-        <header className="h-16 border-b border-[#1a1c1c] px-6 sm:px-8 flex items-center justify-between bg-[#121414] sticky top-0 z-20">
-          <div className="flex items-center gap-3">
+        <header className="h-16 border-b border-[#1a1c1c] px-4 sm:px-8 flex items-center justify-between bg-[#121414] sticky top-0 z-20">
+          {/* Mobile Left: Hamburger Menu Button */}
+          <div className="flex md:hidden items-center">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 text-[#a0a0a0] hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              aria-label="Ouvrir la navigation admin"
+            >
+              <Menu className="w-6 h-6 text-custom-amber" />
+            </button>
+          </div>
+
+          {/* Desktop Left: Icon + Section Title */}
+          <div className="hidden md:flex items-center gap-3">
             {activeTab === "invitations" && <Mail className="w-5 h-5 text-[#fca311]" />}
             {activeTab === "membres" && <Users className="w-5 h-5 text-[#fca311]" />}
             {activeTab === "activities" && <Sparkles className="w-5 h-5 text-[#fca311]" />}
@@ -794,6 +810,17 @@ export default function AdminDashboardPage() {
             </h2>
           </div>
 
+          {/* Mobile Center: Centered CGI ENIT Logo */}
+          <div className="flex md:hidden items-center justify-center gap-2">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#121414] border border-custom-amber/40 p-1 flex items-center justify-center">
+              <img src={logoUrl} alt="CGI ENIT" className="w-full h-full object-contain" />
+            </div>
+            <span className="text-white font-black text-sm font-mono tracking-wide">
+              CGI ENIT
+            </span>
+          </div>
+
+          {/* Right Area: Bell + Avatar Profile */}
           <div className="flex items-center gap-4">
             <button className="p-2 text-[#888] hover:text-white transition-colors">
               <Bell className="w-5 h-5" />

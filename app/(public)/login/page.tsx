@@ -19,6 +19,34 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const redirectUserByRole = async (user: any) => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const role = profile?.role || user.user_metadata?.role || "membre_actif";
+
+    if (role === "admin") {
+      router.replace("/admin");
+    } else if (role === "membre_bureau" || role === "bureau") {
+      router.replace("/bureau");
+    } else {
+      router.replace("/membre");
+    }
+  };
+
+  React.useEffect(() => {
+    const checkExistingUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await redirectUserByRole(user);
+      }
+    };
+    checkExistingUser();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -34,31 +62,14 @@ export default function LoginPage() {
       if (signInError) throw signInError;
       if (!data.user) throw new Error("Utilisateur introuvable.");
 
-      // 2. Fetch the role from the profiles table (source of truth)
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .maybeSingle();
-
-      // Determine role — fallback to user_metadata if profile not found
-      const role = profile?.role || data.user.user_metadata?.role || "membre_actif";
-
       // Refresh router so server components receive updated auth cookies
       router.refresh();
 
-      // 3. Redirect based on role
-      if (role === "admin") {
-        router.push("/admin");
-      } else if (role === "membre_bureau" || role === "bureau") {
-        router.push("/bureau");
-      } else {
-        router.push("/membre");
-      }
+      // 2. Redirect based on role in replace mode
+      await redirectUserByRole(data.user);
 
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue lors de la connexion.");
-    } finally {
       setLoading(false);
     }
   };

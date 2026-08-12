@@ -97,6 +97,11 @@ export async function GET() {
       .eq("setting_key", "site_logo")
       .maybeSingle();
 
+    // If localUrl exists and it's a custom logo, and Supabase is stuck on default, prioritize localUrl
+    if (localUrl && localUrl.includes("custom-site-logo") && (!data?.setting_value || data.setting_value === "/logo-cgi.jpg")) {
+      return NextResponse.json({ logoUrl: localUrl });
+    }
+
     if (data?.setting_value) {
       return NextResponse.json({ logoUrl: data.setting_value });
     }
@@ -151,15 +156,18 @@ export async function POST(request: Request) {
 
     // Attempt to update site_settings table in Supabase (non-blocking)
     try {
-      await client
+      const { error: dbErr } = await client
         .from("site_settings")
         .upsert({
           setting_key: "site_logo",
           setting_value: finalLogoUrl,
           updated_at: new Date().toISOString(),
         });
+      if (dbErr) {
+        console.warn("Supabase UPSERT failed:", dbErr);
+      }
     } catch (dbErr) {
-      console.warn("DB update non-blocking warning:", dbErr);
+      console.warn("DB update exception:", dbErr);
     }
 
     return NextResponse.json({ url: finalLogoUrl }, { status: 200 });

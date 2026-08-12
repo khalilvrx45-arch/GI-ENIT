@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
@@ -30,27 +30,57 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
+  // supabase.auth.getUser().
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect logic based on role could go here, or in the main middleware file
-  // For now, just protecting routes
-  if (
-    !user &&
-    (request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/bureau") ||
-      request.nextUrl.pathname.startsWith("/admin") ||
-      request.nextUrl.pathname.startsWith("/membre") ||
-      request.nextUrl.pathname.startsWith("/pole"))
-  ) {
-    // no user, redirect to login
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  const { pathname } = request.nextUrl;
+
+  // Never protect or redirect '/'
+  const protectedRoutes = ["/dashboard", "/bureau", "/admin", "/membre", "/pole"];
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (isProtectedRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    // User is logged in, check role for restricted routes
+    if (pathname.startsWith("/admin") || pathname.startsWith("/bureau")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const role = profile?.role || user.user_metadata?.role || "membre_actif";
+
+      if (pathname.startsWith("/admin") && role !== "admin") {
+        const url = request.nextUrl.clone();
+        if (role === "bureau" || role === "membre_bureau") {
+          url.pathname = "/bureau";
+        } else {
+          url.pathname = "/membre";
+        }
+        return NextResponse.redirect(url);
+      }
+
+      if (
+        pathname.startsWith("/bureau") &&
+        role !== "admin" &&
+        role !== "bureau" &&
+        role !== "membre_bureau"
+      ) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/membre";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

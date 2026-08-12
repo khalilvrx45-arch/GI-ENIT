@@ -14,6 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { logoUrl } = useSiteSettings();
   const [user, setUser] = useState<any>(null);
+  const [dashboardHref, setDashboardHref] = useState<string>("/membre");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,16 +28,46 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const getDashboardHrefForUser = async (u: any) => {
+    if (!u) return "/membre";
+    try {
+      const supabase = createClient();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", u.id)
+        .maybeSingle();
+
+      const role = profile?.role || u.user_metadata?.role || "membre_actif";
+      if (role === "admin") return "/admin";
+      if (role === "bureau" || role === "membre_bureau") return "/bureau";
+      return "/membre";
+    } catch {
+      return "/membre";
+    }
+  };
+
   useEffect(() => {
     const supabase = createClient();
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      if (user) {
+        const href = await getDashboardHrefForUser(user);
+        setDashboardHref(href);
+      }
     };
     fetchUser();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const u = session?.user || null;
+      setUser(u);
+      if (u) {
+        const href = await getDashboardHrefForUser(u);
+        setDashboardHref(href);
+      } else {
+        setDashboardHref("/membre");
+      }
     });
 
     return () => {
@@ -48,7 +79,8 @@ export default function Navbar() {
     const supabase = createClient();
     await supabase.auth.signOut();
     setUser(null);
-    router.push('/login');
+    setDashboardHref("/membre");
+    router.push('/');
     router.refresh();
   };
 
@@ -128,7 +160,7 @@ export default function Navbar() {
                   Déconnexion
                 </button>
                 <Link
-                  href="/login"
+                  href={dashboardHref}
                   className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-custom-amber text-custom-black font-bold text-xs tracking-wider uppercase overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] shadow-[0_0_20px_rgba(252,163,17,0.15)] hover:shadow-[0_0_25px_rgba(252,163,17,0.35)]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
@@ -189,7 +221,7 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link
-                    href="/login"
+                    href={dashboardHref}
                     onClick={() => setIsOpen(false)}
                     className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-custom-amber text-custom-black font-bold text-sm tracking-wider uppercase hover:bg-custom-amber/90 transition-colors mt-4"
                   >
