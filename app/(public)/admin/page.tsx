@@ -45,6 +45,9 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/utils/imageCompressor";
 import ProjectManager from "@/components/admin/ProjectManager";
 import PostCreatorModal from "@/components/admin/PostCreatorModal";
+import TestimonialsTab from "@/components/admin/TestimonialsTab";
+import ContenuTab from "@/components/admin/ContenuTab";
+import MemberManagementHub from "@/components/bureau-admin/MemberManagementHub";
 
 import Toast, { ToastMessage } from "@/components/ui/Toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -1109,100 +1112,16 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* TAB 2: MEMBERS */}
+          {/* TAB 2: MEMBERS MANAGEMENT */}
           {activeTab === "membres" && (
-            <div className="space-y-6">
-              <div className="bg-[#14213d] border border-[#333535] rounded-xl p-6 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-[#2a2c2c]">
-                  <div className="relative w-full sm:w-80">
-                    <Search className="w-4 h-4 text-[#555] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={memberSearch}
-                      onChange={(e) => setMemberSearch(e.target.value)}
-                      placeholder="Search by name, email, or role..."
-                      className="w-full bg-[#121414] border border-[#333535] focus:border-[#fca311] rounded-lg py-2 pl-9 pr-3 text-xs text-white font-mono outline-none"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button className="px-4 py-2 rounded-lg border border-[#333535] bg-[#121414] text-xs font-mono text-white flex items-center gap-2">
-                      <Filter className="w-3.5 h-3.5" /> Filter
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left font-mono text-xs">
-                    <thead>
-                      <tr className="border-b border-[#2a2c2c] text-[#888] uppercase text-[10px] tracking-wider">
-                        <th className="py-3 px-4">MEMBER</th>
-                        <th className="py-3 px-4">CURRENT ROLE</th>
-                        <th className="py-3 px-4">JOIN DATE</th>
-                        <th className="py-3 px-4 text-right">ACTIONS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#2a2c2c]">
-                      {filteredMembers.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="py-8 text-center text-[#666]">
-                            No members found in database.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredMembers.map((row) => (
-                          <tr key={row.id} className="hover:bg-[#1e2020]/50 transition-colors">
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#1e2020] border border-[#333535] flex items-center justify-center font-bold text-white text-xs">
-                                  {row.email.substring(0, 2).toUpperCase()}
-                                </div>
-                                <div>
-                                  <div className="font-bold text-white">
-                                    {row.first_name || row.last_name
-                                      ? `${row.first_name || ""} ${row.last_name || ""}`
-                                      : row.email.split("@")[0]}
-                                  </div>
-                                  <div className="text-[10px] text-[#888]">{row.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <select
-                                value={row.role}
-                                onChange={(e) =>
-                                  handleChangeRole(row, e.target.value as any)
-                                }
-                                className="bg-[#121414] border border-[#333535] focus:border-[#fca311] text-[10px] uppercase font-bold text-white rounded-full px-3 py-1 outline-none cursor-pointer"
-                              >
-                                <option value="membre_actif">Regular Member</option>
-                                <option value="membre_bureau">Board Member</option>
-                                <option value="admin">Admin</option>
-                              </select>
-                            </td>
-                            <td className="py-3.5 px-4 text-[#aaa]">
-                              {new Date(row.created_at).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <button
-                                onClick={() => handleDeleteMember(row)}
-                                className="p-1.5 rounded text-[#888] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <MemberManagementHub
+              currentProfile={{
+                id: currentUser?.id,
+                role: "admin",
+                first_name: currentUser?.user_metadata?.first_name || "Admin",
+                email: currentUser?.email,
+              }}
+            />
           )}
 
           {/* TAB 3: HERO CAROUSEL MANAGER */}
@@ -1427,55 +1346,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* TAB 4, 5: COMING SOON */}
-          {["contenu", "temoignages"].includes(activeTab) && (
-            <div className="py-12 flex items-center justify-center">
-              <div className="bg-[#14213d] border border-[#333535] rounded-2xl p-10 text-center max-w-lg w-full shadow-2xl space-y-6 font-mono">
-                <div className="w-16 h-16 rounded-full bg-[#1e2020] border border-[#333535] text-[#fca311] mx-auto flex items-center justify-center shadow">
-                  <Wrench className="w-8 h-8" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-extrabold text-white uppercase tracking-wider">
-                    COMING SOON
-                  </h3>
-                  <div className="h-[2px] w-12 bg-[#fca311] mx-auto" />
-                </div>
 
-                <p className="text-xs text-[#888] leading-relaxed">
-                  This feature is coming soon in the next version of the{" "}
-                  <span className="text-white font-bold">CGI ENIT portal</span>. We are currently
-                  engineering a high-performance environment for your content management.
-                </p>
-
-                <div className="space-y-2 text-left">
-                  <div className="flex justify-between text-[10px] text-[#888]">
-                    <span>SYSTEM CALIBRATION</span>
-                    <span>84% COMPLETE</span>
-                  </div>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-3 flex-1 bg-[#fca311] rounded-sm" />
-                    ))}
-                    <div className="h-3 flex-1 bg-[#222] rounded-sm" />
-                  </div>
-                </div>
-
-                <div className="pt-2 flex justify-center gap-3">
-                  <button
-                    onClick={() => setActiveTab("invitations")}
-                    className="bg-[#fca311] hover:bg-[#ffc887] text-black font-bold text-xs uppercase px-5 py-2.5 rounded-lg transition-colors"
-                  >
-                    Return to Dashboard
-                  </button>
-                </div>
-
-                <div className="pt-4 border-t border-[#2a2c2c] flex justify-between items-center text-[10px] text-[#555]">
-                  <span>⚡ Version 2.0.4-beta</span>
-                  <span>🔒 Secure Terminal</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* TAB 4: LOGO & BRANDING SETTINGS */}
           {activeTab === "parametres" && (
@@ -1787,13 +1658,26 @@ export default function AdminDashboardPage() {
           {/* TAB: PROJETS */}
           {activeTab === "projets" && <ProjectManager />}
 
+          {/* TAB: TÉMOIGNAGES */}
+          {activeTab === "temoignages" && (
+            <TestimonialsTab
+              addToast={addToast}
+              openConfirm={(cfg) => setModalConfig({ isOpen: true, ...cfg })}
+            />
+          )}
+
+          {/* TAB: CONTENU */}
+          {activeTab === "contenu" && <ContenuTab addToast={addToast} />}
+
           {/* FALLBACK FOR UNIMPLEMENTED TABS */}
           {activeTab !== "invitations" &&
             activeTab !== "membres" &&
             activeTab !== "projets" &&
             activeTab !== "activities" &&
             activeTab !== "hero" &&
-            activeTab !== "parametres" && (
+            activeTab !== "parametres" &&
+            activeTab !== "temoignages" &&
+            activeTab !== "contenu" && (
               <div className="py-12 flex items-center justify-center">
                 <div className="bg-[#14213d] border border-[#333535] rounded-2xl p-10 text-center max-w-lg w-full shadow-2xl space-y-6 font-mono">
                   <div className="w-16 h-16 rounded-full bg-[#1e2020] border border-[#333535] text-[#fca311] mx-auto flex items-center justify-center shadow">

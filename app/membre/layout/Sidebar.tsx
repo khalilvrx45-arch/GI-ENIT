@@ -13,6 +13,7 @@ import {
   CalendarRange,
   Users,
   Trophy,
+  ShieldCheck,
 } from 'lucide-react'
 
 type Profile = Database['public']['Tables']['profiles']['Row'] & {
@@ -78,7 +79,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
         })}
         
         {isBureauOrAdmin(profile.role) && (
-          <div className="mt-6 border-t border-[#2a2c2c] px-2 pt-5">
+          <div className="mt-6 border-t border-[#2a2c2c] px-2 pt-5 space-y-1">
             <div className="flex items-center justify-between mb-3 px-2">
               <span className="text-[10px] uppercase tracking-wider text-[#666] font-semibold">
                 Espace Responsable
@@ -87,6 +88,19 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                 {profile.role === 'admin' ? 'Admin' : 'Bureau'}
               </span>
             </div>
+
+            <Link
+              href="/membre/administration"
+              aria-current={pathname.startsWith('/membre/administration') ? 'page' : undefined}
+              className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 ${
+                pathname.startsWith('/membre/administration')
+                  ? 'bg-[#fca311] text-black shadow-md'
+                  : 'text-[#fca311] bg-[#fca311]/10 hover:bg-[#fca311]/20'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              <span>Administration</span>
+            </Link>
           </div>
         )}
       </nav>

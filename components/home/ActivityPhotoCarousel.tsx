@@ -7,7 +7,7 @@ interface ActivityPhotoCarouselProps {
   photos: string[];
   alt?: string;
   className?: string;
-  /** Aspect ratio class, e.g. "aspect-video" or "aspect-square". Defaults to aspect-video */
+  /** @deprecated No longer used — images display at their natural aspect ratio */
   aspectRatio?: string;
 }
 
@@ -38,7 +38,7 @@ export default function ActivityPhotoCarousel({
   if (!photos || photos.length === 0) {
     return (
       <div
-        className={`${aspectRatio} w-full rounded-2xl bg-gradient-to-br from-[#14213d] to-[#0c0d0d] border border-[#2a2c2c] flex items-center justify-center ${className}`}
+        className={`w-full rounded-2xl bg-gradient-to-br from-[#14213d] to-[#0c0d0d] border border-[#2a2c2c] flex items-center justify-center min-h-[200px] ${className}`}
       >
         <ImageIcon className="w-10 h-10 text-[#333]" />
       </div>
@@ -46,33 +46,35 @@ export default function ActivityPhotoCarousel({
   }
 
   return (
-    <div className={`relative w-full ${aspectRatio} rounded-2xl overflow-hidden bg-black group ${className}`}>
-      {/* Images */}
-      {photos.map((url, idx) => (
-        <img
-          key={idx}
-          src={url}
-          alt={`${alt} ${idx + 1}`}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-            idx === current ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      ))}
+    <div className={`relative w-full rounded-2xl overflow-hidden bg-black group ${className}`}>
+      {/* Natural-ratio image stack — only the current photo takes up space */}
+      <div className="relative">
+        {photos.map((url, idx) => (
+          <img
+            key={idx}
+            src={url}
+            alt={`${alt} ${idx + 1}`}
+            className={`w-full max-h-[70vh] object-contain transition-opacity duration-500 ${
+              idx === current ? "block opacity-100" : "hidden opacity-0"
+            }`}
+          />
+        ))}
+      </div>
 
-      {/* Navigation arrows — only shown when multiple photos */}
+      {/* Navigation arrows — always visible when multiple photos */}
       {photos.length > 1 && (
         <>
           <button
             onClick={prev}
             aria-label="Photo précédente"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={next}
             aria-label="Photo suivante"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
