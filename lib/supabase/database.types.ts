@@ -15,6 +15,9 @@ export type Database = {
           year: string | null
           avatar_url: string | null
           is_active: boolean
+          birth_date: string | null
+          phone: string | null
+          linkedin_url: string | null
         }
         Insert: { id: string } & Partial<Database['public']['Tables']['profiles']['Row']>
         Update: Partial<Database['public']['Tables']['profiles']['Row']>

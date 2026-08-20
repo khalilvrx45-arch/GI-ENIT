@@ -9,6 +9,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT NOT NULL,
   first_name TEXT,
   last_name TEXT,
+  full_name TEXT,
+  avatar_url TEXT,
+  year TEXT,
+  birth_date DATE,
+  phone TEXT,
+  linkedin_url TEXT,
+  bio TEXT,
+  age INTEGER,
+  gender TEXT,
+  height NUMERIC(5,2),
+  weight NUMERIC(5,2),
+  fitness_goal TEXT,
+  injuries TEXT,
+  training_availability TEXT,
   role TEXT DEFAULT 'membre_actif' CHECK (role IN ('admin', 'membre_bureau', 'membre_actif')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -139,4 +153,19 @@ CREATE POLICY "Public Read Access activity-images"
 CREATE POLICY "Authenticated Upload activity-images"
   ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'activity-images');
 
+-- 7. BUCKET STORAGE AVATARS (Photos de profil membres)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
 
+CREATE POLICY "Public Read Access avatars"
+  ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+
+CREATE POLICY "Authenticated Upload avatars"
+  ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "Authenticated Update avatars"
+  ON storage.objects FOR UPDATE USING (bucket_id = 'avatars');
+
+-- Refresh PostgREST API schema cache
+NOTIFY pgrst, 'reload schema';

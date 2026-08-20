@@ -1,0 +1,1750 @@
+﻿diff --git a/app/(public)/admin/page.tsx b/app/(public)/admin/page.tsx
+index caccd83..d2e2351 100644
+--- a/app/(public)/admin/page.tsx
++++ b/app/(public)/admin/page.tsx
+@@ -45,6 +45,9 @@ import { createClient } from "@/lib/supabase/client";
+ import { compressImage } from "@/lib/utils/imageCompressor";
+ import ProjectManager from "@/components/admin/ProjectManager";
+ import PostCreatorModal from "@/components/admin/PostCreatorModal";
++import TestimonialsTab from "@/components/admin/TestimonialsTab";
++import ContenuTab from "@/components/admin/ContenuTab";
++import MemberManagementHub from "@/components/bureau-admin/MemberManagementHub";
+ 
+ import Toast, { ToastMessage } from "@/components/ui/Toast";
+ import ConfirmModal from "@/components/ui/ConfirmModal";
+@@ -1109,100 +1112,16 @@ export default function AdminDashboardPage() {
+             </div>
+           )}
+ 
+-          {/* TAB 2: MEMBERS */}
++          {/* TAB 2: MEMBERS MANAGEMENT */}
+           {activeTab === "membres" && (
+-            <div className="space-y-6">
+-              <div className="bg-[#14213d] border border-[#333535] rounded-xl p-6 shadow-xl space-y-4">
+-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-[#2a2c2c]">
+-                  <div className="relative w-full sm:w-80">
+-                    <Search className="w-4 h-4 text-[#555] absolute left-3 top-1/2 -translate-y-1/2" />
+-                    <input
+-                      type="text"
+-                      value={memberSearch}
+-                      onChange={(e) => setMemberSearch(e.target.value)}
+-                      placeholder="Search by name, email, or role..."
+-                      className="w-full bg-[#121414] border border-[#333535] focus:border-[#fca311] rounded-lg py-2 pl-9 pr-3 text-xs text-white font-mono outline-none"
+-                    />
+-                  </div>
+-
+-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+-                    <button className="px-4 py-2 rounded-lg border border-[#333535] bg-[#121414] text-xs font-mono text-white flex items-center gap-2">
+-                      <Filter className="w-3.5 h-3.5" /> Filter
+-                    </button>
+-                  </div>
+-                </div>
+-
+-                <div className="overflow-x-auto">
+-                  <table className="w-full text-left font-mono text-xs">
+-                    <thead>
+-                      <tr className="border-b border-[#2a2c2c] text-[#888] uppercase text-[10px] tracking-wider">
+-                        <th className="py-3 px-4">MEMBER</th>
+-                        <th className="py-3 px-4">CURRENT ROLE</th>
+-                        <th className="py-3 px-4">JOIN DATE</th>
+-                        <th className="py-3 px-4 text-right">ACTIONS</th>
+-                      </tr>
+-                    </thead>
+-                    <tbody className="divide-y divide-[#2a2c2c]">
+-                      {filteredMembers.length === 0 ? (
+-                        <tr>
+-                          <td colSpan={4} className="py-8 text-center text-[#666]">
+-                            No members found in database.
+-                          </td>
+-                        </tr>
+-                      ) : (
+-                        filteredMembers.map((row) => (
+-                          <tr key={row.id} className="hover:bg-[#1e2020]/50 transition-colors">
+-                            <td className="py-3.5 px-4">
+-                              <div className="flex items-center gap-3">
+-                                <div className="w-8 h-8 rounded-full bg-[#1e2020] border border-[#333535] flex items-center justify-center font-bold text-white text-xs">
+-                                  {row.email.substring(0, 2).toUpperCase()}
+-                                </div>
+-                                <div>
+-                                  <div className="font-bold text-white">
+-                                    {row.first_name || row.last_name
+-                                      ? `${row.first_name || ""} ${row.last_name || ""}`
+-                                      : row.email.split("@")[0]}
+-                                  </div>
+-                                  <div className="text-[10px] text-[#888]">{row.email}</div>
+-                                </div>
+-                              </div>
+-                            </td>
+-                            <td className="py-3.5 px-4">
+-                              <select
+-                                value={row.role}
+-                                onChange={(e) =>
+-                                  handleChangeRole(row, e.target.value as any)
+-                                }
+-                                className="bg-[#121414] border border-[#333535] focus:border-[#fca311] text-[10px] uppercase font-bold text-white rounded-full px-3 py-1 outline-none cursor-pointer"
+-                              >
+-                                <option value="membre_actif">Regular Member</option>
+-                                <option value="membre_bureau">Board Member</option>
+-                                <option value="admin">Admin</option>
+-                              </select>
+-                            </td>
+-                            <td className="py-3.5 px-4 text-[#aaa]">
+-                              {new Date(row.created_at).toLocaleDateString("en-US", {
+-                                month: "short",
+-                                day: "numeric",
+-                                year: "numeric",
+-                              })}
+-                            </td>
+-                            <td className="py-3.5 px-4 text-right">
+-                              <button
+-                                onClick={() => handleDeleteMember(row)}
+-                                className="p-1.5 rounded text-[#888] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+-                              >
+-                                <Trash2 className="w-4 h-4" />
+-                              </button>
+-                            </td>
+-                          </tr>
+-                        ))
+-                      )}
+-                    </tbody>
+-                  </table>
+-                </div>
+-              </div>
+-            </div>
++            <MemberManagementHub
++              currentProfile={{
++                id: currentUser?.id,
++                role: "admin",
++                first_name: currentUser?.user_metadata?.first_name || "Admin",
++                email: currentUser?.email,
++              }}
++            />
+           )}
+ 
+           {/* TAB 3: HERO CAROUSEL MANAGER */}
+@@ -1427,55 +1346,7 @@ export default function AdminDashboardPage() {
+             </div>
+           )}
+ 
+-          {/* TAB 4, 5: COMING SOON */}
+-          {["contenu", "temoignages"].includes(activeTab) && (
+-            <div className="py-12 flex items-center justify-center">
+-              <div className="bg-[#14213d] border border-[#333535] rounded-2xl p-10 text-center max-w-lg w-full shadow-2xl space-y-6 font-mono">
+-                <div className="w-16 h-16 rounded-full bg-[#1e2020] border border-[#333535] text-[#fca311] mx-auto flex items-center justify-center shadow">
+-                  <Wrench className="w-8 h-8" />
+-                </div>
+-                <div className="space-y-2">
+-                  <h3 className="text-2xl font-extrabold text-white uppercase tracking-wider">
+-                    COMING SOON
+-                  </h3>
+-                  <div className="h-[2px] w-12 bg-[#fca311] mx-auto" />
+-                </div>
+ 
+-                <p className="text-xs text-[#888] leading-relaxed">
+-                  This feature is coming soon in the next version of the{" "}
+-                  <span className="text-white font-bold">CGI ENIT portal</span>. We are currently
+-                  engineering a high-performance environment for your content management.
+-                </p>
+-
+-                <div className="space-y-2 text-left">
+-                  <div className="flex justify-between text-[10px] text-[#888]">
+-                    <span>SYSTEM CALIBRATION</span>
+-                    <span>84% COMPLETE</span>
+-                  </div>
+-                  <div className="flex gap-1">
+-                    {[1, 2, 3, 4].map((i) => (
+-                      <div key={i} className="h-3 flex-1 bg-[#fca311] rounded-sm" />
+-                    ))}
+-                    <div className="h-3 flex-1 bg-[#222] rounded-sm" />
+-                  </div>
+-                </div>
+-
+-                <div className="pt-2 flex justify-center gap-3">
+-                  <button
+-                    onClick={() => setActiveTab("invitations")}
+-                    className="bg-[#fca311] hover:bg-[#ffc887] text-black font-bold text-xs uppercase px-5 py-2.5 rounded-lg transition-colors"
+-                  >
+-                    Return to Dashboard
+-                  </button>
+-                </div>
+-
+-                <div className="pt-4 border-t border-[#2a2c2c] flex justify-between items-center text-[10px] text-[#555]">
+-                  <span>ÔÜí Version 2.0.4-beta</span>
+-                  <span>­ƒöÆ Secure Terminal</span>
+-                </div>
+-              </div>
+-            </div>
+-          )}
+ 
+           {/* TAB 4: LOGO & BRANDING SETTINGS */}
+           {activeTab === "parametres" && (
+@@ -1787,13 +1658,26 @@ export default function AdminDashboardPage() {
+           {/* TAB: PROJETS */}
+           {activeTab === "projets" && <ProjectManager />}
+ 
++          {/* TAB: T├ëMOIGNAGES */}
++          {activeTab === "temoignages" && (
++            <TestimonialsTab
++              addToast={addToast}
++              openConfirm={(cfg) => setModalConfig({ isOpen: true, ...cfg })}
++            />
++          )}
++
++          {/* TAB: CONTENU */}
++          {activeTab === "contenu" && <ContenuTab addToast={addToast} />}
++
+           {/* FALLBACK FOR UNIMPLEMENTED TABS */}
+           {activeTab !== "invitations" &&
+             activeTab !== "membres" &&
+             activeTab !== "projets" &&
+             activeTab !== "activities" &&
+             activeTab !== "hero" &&
+-            activeTab !== "parametres" && (
++            activeTab !== "parametres" &&
++            activeTab !== "temoignages" &&
++            activeTab !== "contenu" && (
+               <div className="py-12 flex items-center justify-center">
+                 <div className="bg-[#14213d] border border-[#333535] rounded-2xl p-10 text-center max-w-lg w-full shadow-2xl space-y-6 font-mono">
+                   <div className="w-16 h-16 rounded-full bg-[#1e2020] border border-[#333535] text-[#fca311] mx-auto flex items-center justify-center shadow">
+diff --git a/app/(public)/api/admin/invite/route.ts b/app/(public)/api/admin/invite/route.ts
+index b479253..3578120 100644
+--- a/app/(public)/api/admin/invite/route.ts
++++ b/app/(public)/api/admin/invite/route.ts
+@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
+ import { createClient as createServerSupabase } from "@/lib/supabase/server";
+ import { createClient } from "@supabase/supabase-js";
+ import { Resend } from "resend";
++import nodemailer from "nodemailer";
+ 
+ export async function POST(request: Request) {
+   try {
+@@ -85,79 +86,105 @@ export async function POST(request: Request) {
+     const origin = request.headers.get("origin") || "http://localhost:3000";
+     const inviteLink = `${origin}/invite/${token}`;
+ 
+-    // 5. Send email via Resend
++    // 5. Send email via Nodemailer (Gmail SMTP) or Resend fallback
+     let emailSent = false;
+-    let resendError = null;
++    let mailError: string | null = null;
++    const roleLabel =
++      role === "membre_bureau" ? "Membre du Bureau" : "Membre Actif";
++
++    const emailHtml = `
++      <!DOCTYPE html>
++      <html>
++        <head>
++          <meta charset="utf-8" />
++          <title>Invitation CGI ENIT</title>
++        </head>
++        <body style="background-color: #121414; color: #e2e2e2; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 40px 20px;">
++          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" style="max-width: 560px; background-color: #14213d; border: 1px solid #333535; border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
++            <tr>
++              <td align="center" style="padding-bottom: 24px;">
++                <div style="font-family: monospace; font-size: 11px; font-weight: bold; color: #fca311; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">
++                  CGI ENIT ÔÇó TERMINAL D'INVITATION
++                </div>
++                <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
++                  Bienvenue au Club
++                </h1>
++              </td>
++            </tr>
++            <tr>
++              <td style="color: #cccccc; font-size: 14px; line-height: 1.6; padding-bottom: 24px;">
++                Bonjour,<br/><br/>
++                Vous avez ├®t├® officiellement invit├®(e) ├á rejoindre la plateforme interne du <strong style="color: #ffffff;">Club G├®nie Industriel de l'ENIT</strong> avec le r├┤le de <span style="color: #fca311; font-weight: bold;">${roleLabel}</span>.
++              </td>
++            </tr>
++            <tr>
++              <td align="center" style="padding-bottom: 32px;">
++                <a href="${inviteLink}" target="_blank" style="background-color: #fca311; color: #000000; font-weight: bold; font-family: monospace; font-size: 14px; text-decoration: none; padding: 14px 28px; border-radius: 8px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(252, 163, 17, 0.3);">
++                  Finaliser mon compte &rarr;
++                </a>
++              </td>
++            </tr>
++            <tr>
++              <td style="color: #888888; font-size: 12px; line-height: 1.5; border-top: 1px solid #2a2c2c; padding-top: 20px;">
++                <p style="margin: 0 0 8px 0;">Ce lien d'invitation est valable pendant <strong style="color: #ffffff;">${daysToAdd} jours</strong>.</p>
++                <p style="margin: 0; font-size: 11px; color: #666666;">Si le bouton ne fonctionne pas, copiez et collez cette URL dans votre navigateur :<br/>
++                  <a href="${inviteLink}" style="color: #fca311; text-decoration: underline; word-break: break-all;">${inviteLink}</a>
++                </p>
++              </td>
++            </tr>
++            <tr>
++              <td align="center" style="padding-top: 24px; font-family: monospace; font-size: 10px; color: #555555; text-transform: uppercase; letter-spacing: 1px;">
++                ┬® ${new Date().getFullYear()} Club G├®nie Industriel ÔÇö ENIT
++              </td>
++            </tr>
++          </table>
++        </body>
++      </html>
++    `;
++
++    const gmailUser = process.env.GMAIL_USER;
++    const gmailPass = process.env.GMAIL_APP_PASSWORD;
+     const resendApiKey = process.env.RESEND_API_KEY;
+ 
+-    if (resendApiKey) {
++    if (gmailUser && gmailPass) {
+       try {
+-        const resend = new Resend(resendApiKey);
+-        const roleLabel =
+-          role === "membre_bureau" ? "Membre du Bureau" : "Membre Actif";
++        const transporter = nodemailer.createTransport({
++          service: "gmail",
++          auth: {
++            user: gmailUser,
++            pass: gmailPass,
++          },
++        });
++
++        await transporter.sendMail({
++          from: `"Club G├®nie Industriel ENIT" <${gmailUser}>`,
++          to: cleanEmail,
++          subject: "Invitation ÔÇö Club G├®nie Industriel ENIT",
++          html: emailHtml,
++        });
+ 
++        emailSent = true;
++      } catch (err: any) {
++        console.error("Gmail SMTP error:", err);
++        mailError = err.message;
++      }
++    } else if (resendApiKey) {
++      try {
++        const resend = new Resend(resendApiKey);
+         const { error: mailErr } = await resend.emails.send({
+           from: "Club G├®nie Industriel ENIT <onboarding@resend.dev>",
+           to: [cleanEmail],
+           subject: "Invitation ÔÇö Club G├®nie Industriel ENIT",
+-          html: `
+-            <!DOCTYPE html>
+-            <html>
+-              <head>
+-                <meta charset="utf-8" />
+-                <title>Invitation CGI ENIT</title>
+-              </head>
+-              <body style="background-color: #121414; color: #e2e2e2; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 40px 20px;">
+-                <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" style="max-width: 560px; background-color: #14213d; border: 1px solid #333535; border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+-                  <tr>
+-                    <td align="center" style="padding-bottom: 24px;">
+-                      <div style="font-family: monospace; font-size: 11px; font-weight: bold; color: #fca311; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">
+-                        CGI ENIT ÔÇó TERMINAL D'INVITATION
+-                      </div>
+-                      <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+-                        Bienvenue au Club
+-                      </h1>
+-                    </td>
+-                  </tr>
+-                  <tr>
+-                    <td style="color: #cccccc; font-size: 14px; line-height: 1.6; padding-bottom: 24px;">
+-                      Bonjour,<br/><br/>
+-                      Vous avez ├®t├® officiellement invit├®(e) ├á rejoindre la plateforme interne du <strong style="color: #ffffff;">Club G├®nie Industriel de l'ENIT</strong> avec le r├┤le de <span style="color: #fca311; font-weight: bold;">${roleLabel}</span>.
+-                    </td>
+-                  </tr>
+-                  <tr>
+-                    <td align="center" style="padding-bottom: 32px;">
+-                      <a href="${inviteLink}" target="_blank" style="background-color: #fca311; color: #000000; font-weight: bold; font-family: monospace; font-size: 14px; text-decoration: none; padding: 14px 28px; border-radius: 8px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(252, 163, 17, 0.3);">
+-                        Finaliser mon compte &rarr;
+-                      </a>
+-                    </td>
+-                  </tr>
+-                  <tr>
+-                    <td style="color: #888888; font-size: 12px; line-height: 1.5; border-top: 1px solid #2a2c2c; padding-top: 20px;">
+-                      <p style="margin: 0 0 8px 0;">Ce lien d'invitation est valable pendant <strong style="color: #ffffff;">${daysToAdd} jours</strong>.</p>
+-                      <p style="margin: 0; font-size: 11px; color: #666666;">Si le bouton ne fonctionne pas, copiez et collez cette URL dans votre navigateur :<br/>
+-                        <a href="${inviteLink}" style="color: #fca311; text-decoration: underline; word-break: break-all;">${inviteLink}</a>
+-                      </p>
+-                    </td>
+-                  </tr>
+-                  <tr>
+-                    <td align="center" style="padding-top: 24px; font-family: monospace; font-size: 10px; color: #555555; text-transform: uppercase; letter-spacing: 1px;">
+-                      ┬® ${new Date().getFullYear()} Club G├®nie Industriel ÔÇö ENIT
+-                    </td>
+-                  </tr>
+-                </table>
+-              </body>
+-            </html>
+-          `,
++          html: emailHtml,
+         });
+ 
+         if (!mailErr) {
+           emailSent = true;
+         } else {
+-          resendError = mailErr.message;
++          mailError = mailErr.message;
+         }
+       } catch (err: any) {
+-        resendError = err.message;
++        mailError = err.message;
+       }
+     }
+ 
+@@ -166,7 +193,7 @@ export async function POST(request: Request) {
+       invitation: newInvite,
+       inviteLink,
+       emailSent,
+-      resendError,
++      resendError: mailError,
+     });
+   } catch (err: any) {
+     return NextResponse.json(
+@@ -175,3 +202,4 @@ export async function POST(request: Request) {
+     );
+   }
+ }
++
+diff --git a/app/(public)/page.tsx b/app/(public)/page.tsx
+index 4f6d7ab..829056c 100644
+--- a/app/(public)/page.tsx
++++ b/app/(public)/page.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import React, { useState } from "react";
++import React, { useState, useEffect } from "react";
+ import { motion, AnimatePresence, Variants } from "framer-motion";
+ import {
+   Users,
+@@ -8,54 +8,222 @@ import {
+   Heart,
+   TrendingUp,
+   Cpu,
+-  Linkedin,
+-  ArrowUpRight,
++  ChevronRight,
++  ClipboardList,
+   Workflow,
+   ShieldCheck,
+   LineChart,
+   Lightbulb,
+   Factory,
+-  ChevronRight,
+-  ClipboardList
++  Zap,
++  Shield,
++  Flame,
++  Trophy,
++  Rocket,
++  Calculator,
++  FolderKanban,
++  Truck,
++  Linkedin,
++  Github,
++  Code2,
+ } from "lucide-react";
+ import HeroBackgroundCarousel from "@/components/home/HeroBackgroundCarousel";
+ import ClubActivitiesSection from "@/components/home/ClubActivitiesSection";
+ import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+-
+-// Types
+-interface Roadmap {
+-  id: string;
+-  title: string;
+-  description: string;
+-  icon: React.ReactNode;
+-  topics: string[];
+-  tools: string[];
+-  role: string;
+-}
++import { createClient } from "@/lib/supabase/client";
++
++// Icon Helper
++const renderDynamicIcon = (name: string, className = "w-6 h-6") => {
++  switch (name) {
++    case "Users": return <Users className={className} />;
++    case "Heart": return <Heart className={className} />;
++    case "Target": return <Target className={className} />;
++    case "Zap": return <Zap className={className} />;
++    case "Shield": return <Shield className={className} />;
++    case "Flame": return <Flame className={className} />;
++    case "Trophy": return <Trophy className={className} />;
++    case "Rocket": return <Rocket className={className} />;
++    case "TrendingUp": return <TrendingUp className={className} />;
++    case "Factory": return <Factory className={className} />;
++    case "ShieldCheck": return <ShieldCheck className={className} />;
++    case "Calculator": return <Calculator className={className} />;
++    case "Cpu": return <Cpu className={className} />;
++    case "FolderKanban": return <FolderKanban className={className} />;
++    case "LineChart": return <LineChart className={className} />;
++    case "Truck": return <Truck className={className} />;
++    case "ClipboardList": return <ClipboardList className={className} />;
++    default: return <Workflow className={className} />;
++  }
++};
++
++// Fallback Default Data
++const DEFAULT_WHY_US = [
++  { title: "Team Spirit", description: "Une coh├®sion d'├®quipe ind├®fectible. Nous croyons en la synergie des talents de l'ENIT pour accomplir de grandes choses ensemble.", icon: "Users" },
++  { title: "Passion", description: "L'amour de l'ing├®nierie et de l'optimisation. Nous cherchons constamment ├á repousser les limites de l'innovation industrielle.", icon: "Heart" },
++  { title: "One Goal", description: "Un seul objectif : l'excellence. Former les ing├®nieurs GI de demain ├á ├¬tre pr├¬ts pour les d├®fis du march├® mondial.", icon: "Target" },
++];
++
++const DEFAULT_ROADMAPS = [
++  {
++    icon: "TrendingUp",
++    title: "Supply Chain & Logistique",
++    role: "Supply Chain Manager, Ing├®nieur Logistique",
++    description: "L'art de piloter les flux physiques et d'information de bout en bout avec une efficacit├® maximale et des co├╗ts optimis├®s.",
++    skills: ["Gestion des stocks & Approvisionnements", "Transport, Distribution & Logistique Verte", "Global Supply Chain & S&OP"],
++    tools: ["SAP ERP", "Advanced Planning & Scheduling (APS)", "Logiciels de routage (VRP)"],
++  },
++  {
++    icon: "Factory",
++    title: "Gestion de Production",
++    role: "Responsable Production, Ing├®nieur M├®thodes",
++    description: "Planifier, ordonnancer et fabriquer en minimisant les gaspillages et en maximisant la productivit├®.",
++    skills: ["MRP / ERP & Ordonnancement", "Lean Manufacturing (Gaspillages, VSM)", "Syst├¿me Juste-├á-Temps & Kanban"],
++    tools: ["Jira / Trello", "MS Project / Primavera", "Syst├¿mes MES (Manufacturing Execution Systems)"],
++  },
++  {
++    icon: "ShieldCheck",
++    title: "Qualit├® & Am├®lioration Continue",
++    role: "Ing├®nieur Qualit├®, Black Belt Lean Six Sigma",
++    description: "Garantir la conformit├® et installer une culture d'am├®lioration permanente pour atteindre le z├®ro d├®faut.",
++    skills: ["M├®thodologie Six Sigma (DMAIC)", "Outils Lean (5S, Kaizen, SMED, Poka-Yoke)", "Normes ISO 9001, 14001, 45001"],
++    tools: ["Minitab (Analyse statistique)", "Diagramme d'Ishikawa / Pareto", "FMEA (AMDEC)"],
++  },
++  {
++    icon: "LineChart",
++    title: "Recherche Op├®rationnelle",
++    role: "Ing├®nieur R&D, Data Analyst Industriel",
++    description: "Utiliser les math├®matiques appliqu├®es et l'informatique pour prendre les meilleures d├®cisions possibles.",
++    skills: ["Mod├®lisation math├®matique & Optimisation", "Simulation de flux et d'├®v├®nements discrets", "Th├®orie des graphes & Aide ├á la d├®cision"],
++    tools: ["Python (PuLP, SciPy)", "Gurobi / CPLEX", "Arena / FlexSim (Simulation de flux)"],
++  },
++  {
++    icon: "Cpu",
++    title: "Industrie 4.0 & Maintenance",
++    role: "Ing├®nieur Industrie 4.0, Responsable Maintenance",
++    description: "Int├®grer le digital au c┼ôur de l'usine physique pour la rendre intelligente, flexible et pr├®dictive.",
++    skills: ["Smart Factory & IoT Industriel", "Maintenance Pr├®dictive & GMAO", "Jumeaux num├®riques (Digital Twins)"],
++    tools: ["Node-RED / Plateformes IoT", "Logiciels GMAO", "SCADA & Automates Programmables (API)"],
++  },
++  {
++    icon: "ClipboardList",
++    title: "Gestion de Projets & ├ëconomie",
++    role: "Chef de Projet Industriel, Auditeur de processus",
++    description: "Piloter des projets complexes multidisciplinaires en ma├«trisant les budgets, les d├®lais et les risques.",
++    skills: ["Management de projet (PMBOK, Agile/Scrum)", "Gestion des risques industriels & financiers", "Ing├®nierie financi├¿re & Analyse de rentabilit├®"],
++    tools: ["MS Project", "Analyse de sensibilit├® financi├¿re", "Matrice de criticit├® (Risk Register)"],
++  },
++];
++
++const DEFAULT_TESTIMONIALS = [
++  {
++    id: "def-1",
++    author_name: "Prof. Mohamed Ben Ali",
++    author_role: "Enseignant-Chercheur ENIT",
++    quote: "Le Club G├®nie Industriel de l'ENIT joue un r├┤le fondamental dans le pont entre la th├®orie acad├®mique avanc├®e et les pratiques r├®elles du monde industriel.",
++    author_photo_url: null,
++  },
++  {
++    id: "def-2",
++    author_name: "Sarra Mansour",
++    author_role: "Alumni ENIT ÔÇó Supply Chain Manager at Airbus",
++    quote: "Gr├óce aux ateliers et hackathons du CGI, j'ai d├®velopp├® une compr├®hension concr├¿te des flux de production qui m'a directement propuls├®e dans ma carri├¿re.",
++    author_photo_url: null,
++  },
++  {
++    id: "def-3",
++    author_name: "Youssef Gharbi",
++    author_role: "Ancien Pr├®sident du Club CGI ENIT",
++    quote: "L'esprit de synergie et la qu├¬te constante de l'excellence font du CGI une v├®ritable ├®cole de leadership au c┼ôur de l'ENIT.",
++    author_photo_url: null,
++  },
++];
++
++const DEFAULT_DEVS = [
++  { name: "Khalil Ben Ahmed", role: "Lead Fullstack Developer", linkedin: "https://linkedin.com", github: "https://github.com" },
++  { name: "Yassine Mansour", role: "UI/UX & Frontend Engineer", linkedin: "https://linkedin.com", github: "https://github.com" },
++  { name: "Aymen Ben Ali", role: "Backend & Cloud Architect", linkedin: "https://linkedin.com", github: "https://github.com" },
++];
+ 
+ export default function HomePage() {
+-  const [activeRoadmap, setActiveRoadmap] = useState<string>("supply");
++  const [activeRoadmapIdx, setActiveRoadmapIdx] = useState<number>(0);
+   const { logoUrl } = useSiteSettings();
++  const [testimonials, setTestimonials] = useState<any[]>([]);
++  const [siteContent, setSiteContent] = useState<Record<string, any>>({});
++
++  useEffect(() => {
++    const supabase = createClient();
++    // Testimonials
++    supabase
++      .from("testimonials")
++      .select("*")
++      .eq("approved", true)
++      .order("created_at", { ascending: false })
++      .then(({ data }) => {
++        if (data && data.length > 0) {
++          setTestimonials(data);
++        } else {
++          setTestimonials(DEFAULT_TESTIMONIALS);
++        }
++      });
++
++    // Site Content
++    supabase
++      .from("site_content")
++      .select("section, content")
++      .then(({ data }) => {
++        if (data) {
++          const map: Record<string, any> = {};
++          data.forEach((row) => { map[row.section] = row.content; });
++          setSiteContent(map);
++        }
++      });
++  }, []);
++
++  // Content extractions with robust fallback merging
++  const heroContent = siteContent.hero || {};
++  const aboutContent = siteContent.about || {};
++  const whyUsPillars = siteContent.why_us?.pillars || DEFAULT_WHY_US;
++
++  // Build full 6+ roadmaps list merging DB changes with defaults
++  const dbRoadmaps = siteContent.roadmaps?.items;
++  let roadmapItems = DEFAULT_ROADMAPS;
++  if (Array.isArray(dbRoadmaps) && dbRoadmaps.length > 0) {
++    roadmapItems = DEFAULT_ROADMAPS.map((def, idx) => {
++      const dbItem = dbRoadmaps[idx];
++      if (!dbItem) return def;
++      return {
++        ...def,
++        ...dbItem,
++        role: dbItem.role || def.role,
++        skills: (dbItem.skills && dbItem.skills.length > 0) ? dbItem.skills : def.skills,
++        tools: (dbItem.tools && dbItem.tools.length > 0) ? dbItem.tools : def.tools,
++      };
++    });
++    if (dbRoadmaps.length > DEFAULT_ROADMAPS.length) {
++      roadmapItems = roadmapItems.concat(dbRoadmaps.slice(DEFAULT_ROADMAPS.length));
++    }
++  }
++
++  const displayTestimonials = testimonials.length > 0 ? testimonials : DEFAULT_TESTIMONIALS;
++  const displayDevs = (siteContent.developers?.items && siteContent.developers.items.length > 0)
++    ? siteContent.developers.items
++    : DEFAULT_DEVS;
++
++  const aboutStats = aboutContent.stats || [
++    { value: "+70", label: "├ëtudiants / promo" },
++    { value: "37 ans", label: "D'existence" },
++    { value: "+500", label: "Alumni actifs" },
++  ];
+ 
+   // Animation variants
+   const fadeInUp: Variants = {
+     hidden: { opacity: 0, y: 30 },
+-    visible: { 
+-      opacity: 1, 
+-      y: 0,
+-      transition: { duration: 0.6, ease: "easeOut" } 
+-    }
++    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+   };
+ 
+   const staggerContainer: Variants = {
+     hidden: { opacity: 0 },
+-    visible: {
+-      opacity: 1,
+-      transition: {
+-        staggerChildren: 0.1,
+-        delayChildren: 0.1
+-      }
+-    }
++    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+   };
+ 
+   const cardHoverEffect = {
+@@ -65,161 +233,13 @@ export default function HomePage() {
+     boxShadow: "0 10px 30px -10px rgba(252, 163, 17, 0.15), 0 0 25px 2px rgba(252, 163, 17, 0.05)",
+   };
+ 
+-  // Why Us Cards
+-  const whyUs = [
+-    {
+-      title: "Team Spirit",
+-      description: "Une coh├®sion d'├®quipe ind├®fectible. Nous croyons en la synergie des talents de l'ENIT pour accomplir de grandes choses ensemble.",
+-      icon: <Users className="w-8 h-8 text-custom-amber" />,
+-    },
+-    {
+-      title: "Passion",
+-      description: "L'amour de l'ing├®nierie et de l'optimisation. Nous cherchons constamment ├á repousser les limites de l'innovation industrielle.",
+-      icon: <Heart className="w-8 h-8 text-custom-amber" />,
+-    },
+-    {
+-      title: "One Goal",
+-      description: "Un seul objectif : l'excellence. Former les ing├®nieurs GI de demain ├á ├¬tre pr├¬ts pour les d├®fis du march├® mondial.",
+-      icon: <Target className="w-8 h-8 text-custom-amber" />,
+-    },
+-  ];
+-
+-  // Activities Cards
+-  const activities = [
+-    {
+-      title: "Workshops Industriels",
+-      description: "Ateliers techniques anim├®s par des experts du secteur sur des th├®matiques cl├®s comme la gestion des stocks, la planification (MRP) et la simulation.",
+-      icon: <Workflow className="w-10 h-10 text-custom-amber" />,
+-      tag: "Technique"
+-    },
+-    {
+-      title: "├ëtudes de Cas & Hackathons",
+-      description: "D├®fis de r├®solution de probl├¿mes r├®els d'entreprises. Les membres collaborent pour concevoir des solutions innovantes sous pression.",
+-      icon: <Lightbulb className="w-10 h-10 text-custom-amber" />,
+-      tag: "Comp├®tition"
+-    },
+-    {
+-      title: "Visites d'Usines & Networking",
+-      description: "Visites immersives dans des multinationales et des industries locales majeures pour observer de pr├¿s les lignes de production et r├®seauter.",
+-      icon: <Factory className="w-10 h-10 text-custom-amber" />,
+-      tag: "Immersion"
+-    },
+-    {
+-      title: "Formations Lean Six Sigma",
+-      description: "Sessions de formation menant ├á des certifications (Green Belt / Yellow Belt) indispensables pour la gestion de la qualit├® et l'am├®lioration continue.",
+-      icon: <ShieldCheck className="w-10 h-10 text-custom-amber" />,
+-      tag: "Certification"
+-    },
+-  ];
+-
+-  // Industrial Roadmaps Data
+-  const roadmaps: Roadmap[] = [
+-    {
+-      id: "supply",
+-      title: "Supply Chain & Logistique",
+-      description: "L'art de piloter les flux physiques et d'information de bout en bout avec une efficacit├® maximale et des co├╗ts optimis├®s.",
+-      icon: <TrendingUp className="w-6 h-6" />,
+-      topics: ["Gestion des stocks & Approvisionnements", "Transport, Distribution & Logistique Verte", "Global Supply Chain & S&OP"],
+-      tools: ["SAP ERP", "Advanced Planning & Scheduling (APS)", "Logiciels de routage (VRP)"],
+-      role: "Supply Chain Manager, Ing├®nieur Logistique"
+-    },
+-    {
+-      id: "production",
+-      title: "Gestion de Production",
+-      description: "Planifier, ordonnancer et fabriquer en minimisant les gaspillages et en maximisant la productivit├®.",
+-      icon: <Factory className="w-6 h-6" />,
+-      topics: ["MRP / ERP & Ordonnancement", "Lean Manufacturing (Gaspillages, VSM)", "Syst├¿me Juste-├á-Temps & Kanban"],
+-      tools: ["Jira / Trello", "MS Project / Primavera", "Syst├¿mes MES (Manufacturing Execution Systems)"],
+-      role: "Responsable Production, Ing├®nieur M├®thodes"
+-    },
+-    {
+-      id: "quality",
+-      title: "Qualit├® & Am├®lioration Continue",
+-      description: "Garantir la conformit├® et installer une culture d'am├®lioration permanente pour atteindre le z├®ro d├®faut.",
+-      icon: <ShieldCheck className="w-6 h-6" />,
+-      topics: ["M├®thodologie Six Sigma (DMAIC)", "Outils Lean (5S, Kaizen, SMED, Poka-Yoke)", "Normes ISO 9001, 14001, 45001"],
+-      tools: ["Minitab (Analyse statistique)", "Diagramme d'Ishikawa / Pareto", "FMEA (AMDEC)"],
+-      role: "Ing├®nieur Qualit├®, Black Belt Lean Six Sigma"
+-    },
+-    {
+-      id: "ro",
+-      title: "Recherche Op├®rationnelle",
+-      description: "Utiliser les math├®matiques appliqu├®es et l'informatique pour prendre les meilleures d├®cisions possibles.",
+-      icon: <LineChart className="w-6 h-6" />,
+-      topics: ["Mod├®lisation math├®matique & Optimisation", "Simulation de flux et d'├®v├®nements discrets", "Th├®orie des graphes & Aide ├á la d├®cision"],
+-      tools: ["Python (PuLP, SciPy)", "Gurobi / CPLEX", "Arena / FlexSim (Simulation de flux)"],
+-      role: "Ing├®nieur R&D, Data Analyst Industriel"
+-    },
+-    {
+-      id: "industry",
+-      title: "Industrie 4.0 & Maintenance",
+-      description: "Int├®grer le digital au c┼ôur de l'usine physique pour la rendre intelligente, flexible et pr├®dictive.",
+-      icon: <Cpu className="w-6 h-6" />,
+-      topics: ["Smart Factory & IoT Industriel", "Maintenance Pr├®dictive & GMAO", "Jumeaux num├®riques (Digital Twins)"],
+-      tools: ["Node-RED / Plateformes IoT", "Logiciels GMAO", "SCADA & Automates Programmables (API)"],
+-      role: "Ing├®nieur Industrie 4.0, Responsable Maintenance"
+-    },
+-    {
+-      id: "project",
+-      title: "Gestion de Projets & ├ëconomie",
+-      description: "Piloter des projets complexes multidisciplinaires en ma├«trisant les budgets, les d├®lais et les risques.",
+-      icon: <ClipboardList className="w-6 h-6" />,
+-      topics: ["Management de projet (PMBOK, Agile/Scrum)", "Gestion des risques industriels & financiers", "Ing├®nierie financi├¿re & Analyse de rentabilit├®"],
+-      tools: ["MS Project", "Analyse de sensibilit├® financi├¿re", "Matrice de criticit├® (Risk Register)"],
+-      role: "Chef de Projet Industriel, Auditeur de processus"
+-    }
+-  ];
+-
+-  // Testimonials
+-  const testimonials = [
+-    {
+-      quote: "Le Club G├®nie Industriel de l'ENIT est un pont essentiel entre le monde acad├®mique et l'industrie. Leurs workshops compl├¿tent magnifiquement la rigueur scientifique de notre formation.",
+-      author: "Pr. Slimane Ben Ali",
+-      role: "Enseignant-Chercheur au D├®partement GI, ENIT",
+-      avatar: "S"
+-    },
+-    {
+-      quote: "Nous collaborons r├®guli├¿rement avec les ├®tudiants du CGI pour nos ├®tudes de cas. Leur dynamisme, leur esprit critique et leur ma├«trise du Lean Six Sigma nous impressionnent ├á chaque fois.",
+-      author: "Ing. Rym Kallel",
+-      role: "Directrice Am├®lioration Continue, multinationale automobile",
+-      avatar: "R"
+-    },
+-    {
+-      quote: "Mon passage par le CGI a ├®t├® le d├®clencheur de ma carri├¿re en Supply Chain. C'est l├á que j'ai appris le travail d'├®quipe sous stress et la r├®solution de cas r├®els.",
+-      author: "H├®di Ben Mansour",
+-      role: "Alumnus ENIT ÔÇó Supply Chain Analyst chez Unilever Paris",
+-      avatar: "H"
+-    }
+-  ];
+-
+-  // Developers
+-  const developers = [
+-    {
+-      name: "Alexandre Martin",
+-      role: "Lead Full-Stack Architect",
+-      linkedIn: "https://linkedin.com",
+-      avatar: "AM"
+-    },
+-    {
+-      name: "Sarra Ben Ali",
+-      role: "UI/UX Designer & Frontend",
+-      linkedIn: "https://linkedin.com",
+-      avatar: "SB"
+-    },
+-    {
+-      name: "Karim Tounsi",
+-      role: "D├®veloppeur Full-Stack",
+-      linkedIn: "https://linkedin.com",
+-      avatar: "KT"
+-    }
+-  ];
++  const currentRoadmap = roadmapItems[activeRoadmapIdx] || DEFAULT_ROADMAPS[0];
+ 
+   return (
+     <div className="bg-black text-custom-gray overflow-x-hidden">
+       
+       {/* 1. HERO SECTION */}
+       <section id="hero" className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-20 px-6 overflow-hidden">
+-        {/* Dynamic Admin-Managed Hero Background Carousel */}
+         <HeroBackgroundCarousel />
+ 
+         <motion.div 
+@@ -236,7 +256,7 @@ export default function HomePage() {
+             <div className="w-5 h-5 rounded-full overflow-hidden border border-custom-amber/30 flex-shrink-0 bg-[#121414]">
+               <img src={logoUrl} alt="CGI" className="w-full h-full object-contain p-0.5" />
+             </div>
+-            <span>Club G├®nie Industriel ÔÇó ENIT</span>
++            <span>{heroContent.badge || "Club G├®nie Industriel ÔÇó ENIT"}</span>
+           </motion.div>
+ 
+           {/* Main Title */}
+@@ -244,9 +264,9 @@ export default function HomePage() {
+             variants={fadeInUp}
+             className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]"
+           >
+-            PROFICIENCY IS OUR <br />
++            {heroContent.title || "PROFICIENCY IS OUR"} <br />
+             <span className="text-transparent bg-clip-text bg-gradient-to-r from-custom-amber via-yellow-500 to-amber-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+-              CURRENCY
++              {heroContent.titleAccent || "CURRENCY"}
+             </span>
+           </motion.h1>
+ 
+@@ -255,7 +275,7 @@ export default function HomePage() {
+             variants={fadeInUp}
+             className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] font-medium"
+           >
+-            Optimisez les flux, ma├«trisez le Lean Six Sigma et pilotez l'industrie 4.0. Le point de rencontre des futurs ing├®nieurs experts en supply chain, production et innovation technologique de l'ENIT.
++            {heroContent.subtitle || "Optimisez les flux, ma├«trisez le Lean Six Sigma et pilotez l'industrie 4.0. Le point de rencontre des futurs ing├®nieurs experts en supply chain, production et innovation technologique de l'ENIT."}
+           </motion.p>
+ 
+           {/* Action Buttons */}
+@@ -269,7 +289,7 @@ export default function HomePage() {
+               whileTap={{ scale: 0.95 }}
+               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-custom-amber text-custom-black font-extrabold text-base tracking-wide hover:bg-custom-amber/90 transition-all duration-300 shadow-[0_0_20px_rgba(252,163,17,0.2)]"
+             >
+-              <span>D├®couvrir le Club</span>
++              <span>{heroContent.cta1 || "D├®couvrir le Club"}</span>
+             </motion.a>
+             <motion.a
+               href="#roadmaps"
+@@ -277,7 +297,7 @@ export default function HomePage() {
+               whileTap={{ scale: 0.95 }}
+               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-custom-amber text-custom-amber font-extrabold text-base tracking-wide transition-all duration-300"
+             >
+-              <span>Roadmaps Industrielles</span>
++              <span>{heroContent.cta2 || "Roadmaps Industrielles"}</span>
+               <ChevronRight className="w-5 h-5" />
+             </motion.a>
+           </motion.div>
+@@ -306,7 +326,7 @@ export default function HomePage() {
+           viewport={{ once: true, margin: "-100px" }}
+           className="grid grid-cols-1 md:grid-cols-3 gap-8"
+         >
+-          {whyUs.map((item, index) => (
++          {whyUsPillars.map((item: any, index: number) => (
+             <motion.div
+               key={index}
+               variants={fadeInUp}
+@@ -314,7 +334,7 @@ export default function HomePage() {
+               className="bg-custom-navy p-8 rounded-3xl border border-custom-gray/10 transition-all duration-300 group cursor-pointer"
+             >
+               <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center mb-6 border border-custom-gray/10 group-hover:border-custom-amber/30 transition-colors">
+-                {item.icon}
++                {renderDynamicIcon(item.icon, "w-8 h-8 text-custom-amber")}
+               </div>
+               <h3 className="text-custom-white font-extrabold text-xl mb-3 tracking-wide group-hover:text-custom-amber transition-colors">
+                 {item.title}
+@@ -345,22 +365,15 @@ export default function HomePage() {
+                 Qui sommes-nous ?
+               </span>
+               <h2 className="text-3xl sm:text-5xl font-extrabold text-custom-white tracking-tight leading-tight">
+-                L'excellence du G├®nie Industriel ├á l'ENIT.
++                {aboutContent.title || "L'excellence du G├®nie Industriel ├á l'ENIT."}
+               </h2>
+               <p className="text-base sm:text-lg text-custom-gray/70 leading-relaxed">
+-                Fond├®e en 1882 pour sa structure historique d'ing├®nierie et reconnue dans toute l'Afrique, l'├ëcole Nationale d'Ing├®nieurs de Tunis (ENIT) abrite un d├®partement de <strong className="text-custom-white">G├®nie Industriel</strong> prestigieux. C'est dans ce terreau d'excellence que le <strong className="text-custom-white">Club G├®nie Industriel ENIT</strong> a vu le jour en 1989.
+-              </p>
+-              <p className="text-sm text-custom-gray/60 leading-relaxed">
+-                Notre mission est d'outiller les ├®tudiants en g├®nie industriel avec des comp├®tences pratiques recherch├®es par le march├® : la gestion de projets complexes, l'optimisation math├®matique des flux logistiques, le d├®ploiement du Lean Six Sigma, et la transition vers l'industrie 4.0. Nous unissons th├®orie acad├®mique et d├®fis d'ing├®nierie pratiques pour forger la future ├®lite industrielle.
++                {aboutContent.description || "Fond├®e en 1882 pour sa structure historique d'ing├®nierie et reconnue dans toute l'Afrique, l'├ëcole Nationale d'Ing├®nieurs de Tunis (ENIT) abrite un d├®partement de G├®nie Industriel prestigieux. C'est dans ce terreau d'excellence que le Club G├®nie Industriel ENIT a vu le jour en 1989."}
+               </p>
+               
+               {/* Metrics */}
+               <div className="grid grid-cols-3 gap-6 pt-6">
+-                {[
+-                  { value: "+70", label: "├ëtudiants / promo" },
+-                  { value: "37 ans", label: "D'existence" },
+-                  { value: "+500", label: "Alumni actifs" }
+-                ].map((metric, i) => (
++                {aboutStats.map((metric: any, i: number) => (
+                   <motion.div 
+                     key={i}
+                     whileHover={{ scale: 1.05, borderColor: "rgba(252, 163, 17, 0.3)" }}
+@@ -386,29 +399,24 @@ export default function HomePage() {
+                 transition={{ duration: 0.3 }}
+                 className="w-full aspect-square rounded-3xl border border-custom-gray/10 overflow-hidden relative group cursor-pointer"
+               >
+-                {/* ENIT Gate Photo */}
+                 <img
+                   src="/enit-gate.jpg"
+                   alt="├ëcole Nationale d'Ing├®nieurs de Tunis"
+                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                 />
+ 
+-                {/* Dark overlay gradient */}
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+ 
+-                {/* Top badge */}
+                 <div className="absolute top-4 right-4">
+                   <span className="text-[10px] font-mono text-custom-amber tracking-widest bg-black/70 backdrop-blur-sm border border-custom-amber/30 px-3 py-1.5 rounded-full">
+                     EST. 1989
+                   </span>
+                 </div>
+ 
+-                {/* Club logo badge ÔÇö top left */}
+                 <div className="absolute top-4 left-4 w-12 h-12 rounded-xl overflow-hidden border border-custom-amber/30 shadow-[0_0_15px_rgba(252,163,17,0.2)]">
+-                  <img src="/logo-cgi.jpg" alt="CGI ENIT" className="w-full h-full object-cover" />
++                  <img src={logoUrl} alt="CGI ENIT" className="w-full h-full object-cover" />
+                 </div>
+ 
+-                {/* Bottom glass info panel */}
+                 <div className="absolute bottom-0 left-0 right-0 p-5 backdrop-blur-sm bg-black/50 border-t border-custom-amber/10">
+                   <h3 className="text-base font-black text-custom-white leading-snug mb-2">├ëcole Nationale d'Ing├®nieurs de Tunis</h3>
+                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-custom-gray/50 uppercase tracking-widest">
+@@ -450,7 +458,7 @@ export default function HomePage() {
+           </motion.div>
+ 
+           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+-            {/* Selection Grid (Sidebar on Desktop, Grid on Mobile) */}
++            {/* Selection Grid */}
+             <motion.div 
+               initial={{ opacity: 0, x: -30 }}
+               whileInView={{ opacity: 1, x: 0 }}
+@@ -458,14 +466,14 @@ export default function HomePage() {
+               transition={{ duration: 0.6 }}
+               className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4"
+             >
+-              {roadmaps.map((rm) => (
++              {roadmapItems.map((rm: any, idx: number) => (
+                 <motion.button
+-                  key={rm.id}
++                  key={idx}
+                   whileHover={{ x: 6 }}
+                   whileTap={{ scale: 0.98 }}
+-                  onClick={() => setActiveRoadmap(rm.id)}
++                  onClick={() => setActiveRoadmapIdx(idx)}
+                   className={`p-5 rounded-2xl flex items-center justify-between text-left border transition-all duration-300 cursor-pointer ${
+-                    activeRoadmap === rm.id
++                    activeRoadmapIdx === idx
+                       ? "bg-custom-amber text-custom-black border-custom-amber font-extrabold shadow-[0_0_20px_rgba(252,163,17,0.15)]"
+                       : "bg-custom-navy text-custom-gray border-custom-gray/10 hover:border-custom-amber/40 hover:bg-custom-navy/80"
+                   }`}
+@@ -473,10 +481,10 @@ export default function HomePage() {
+                   <div className="flex items-center gap-4">
+                     <div
+                       className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+-                        activeRoadmap === rm.id ? "bg-custom-black text-custom-amber" : "bg-black text-custom-gray"
++                        activeRoadmapIdx === idx ? "bg-custom-black text-custom-amber" : "bg-black text-custom-gray"
+                       }`}
+                     >
+-                      {rm.icon}
++                      {renderDynamicIcon(rm.icon, "w-6 h-6")}
+                     </div>
+                     <span className="text-sm font-semibold tracking-wide">{rm.title}</span>
+                   </div>
+@@ -494,60 +502,62 @@ export default function HomePage() {
+               className="lg:col-span-7"
+             >
+               <AnimatePresence mode="wait">
+-                {roadmaps
+-                  .filter((rm) => rm.id === activeRoadmap)
+-                  .map((rm) => (
+-                    <motion.div
+-                      key={rm.id}
+-                      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+-                      animate={{ opacity: 1, y: 0, scale: 1 }}
+-                      exit={{ opacity: 0, y: -15, scale: 0.98 }}
+-                      transition={{ duration: 0.4, ease: "easeOut" }}
+-                      className="bg-custom-navy p-8 sm:p-10 rounded-3xl border border-custom-gray/10 shadow-2xl relative overflow-hidden"
+-                    >
+-                      {/* Glowing background inside card */}
+-                      <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-custom-amber/5 blur-3xl pointer-events-none" />
++                {currentRoadmap && (
++                  <motion.div
++                    key={activeRoadmapIdx}
++                    initial={{ opacity: 0, y: 15, scale: 0.98 }}
++                    animate={{ opacity: 1, y: 0, scale: 1 }}
++                    exit={{ opacity: 0, y: -15, scale: 0.98 }}
++                    transition={{ duration: 0.4, ease: "easeOut" }}
++                    className="bg-custom-navy p-8 sm:p-10 rounded-3xl border border-custom-gray/10 shadow-2xl relative overflow-hidden"
++                  >
++                    <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-custom-amber/5 blur-3xl pointer-events-none" />
+ 
+-                      <div className="flex items-center gap-4 mb-6">
+-                        <div className="w-12 h-12 rounded-xl bg-black border border-custom-amber/20 flex items-center justify-center text-custom-amber">
+-                          {rm.icon}
+-                        </div>
+-                        <div>
+-                          <h3 className="text-2xl font-extrabold text-custom-white leading-tight">
+-                            {rm.title}
+-                          </h3>
++                    <div className="flex items-center gap-4 mb-6">
++                      <div className="w-12 h-12 rounded-xl bg-black border border-custom-amber/20 flex items-center justify-center text-custom-amber">
++                        {renderDynamicIcon(currentRoadmap.icon, "w-6 h-6")}
++                      </div>
++                      <div>
++                        <h3 className="text-2xl font-extrabold text-custom-white leading-tight">
++                          {currentRoadmap.title}
++                        </h3>
++                        {currentRoadmap.role && (
+                           <p className="text-xs font-semibold text-custom-amber mt-1 font-mono uppercase tracking-wider">
+-                            M├®tier cible : {rm.role}
++                            M├®tier cible : {currentRoadmap.role}
+                           </p>
+-                        </div>
++                        )}
+                       </div>
++                    </div>
+ 
+-                      <p className="text-sm sm:text-base text-custom-gray/70 leading-relaxed mb-8">
+-                        {rm.description}
+-                      </p>
++                    <p className="text-sm sm:text-base text-custom-gray/70 leading-relaxed mb-8">
++                      {currentRoadmap.description}
++                    </p>
+ 
+-                      {/* Topics Grid */}
++                    {/* Concepts cl├®s / Skills Grid */}
++                    {((currentRoadmap.skills && currentRoadmap.skills.length > 0) || ((currentRoadmap as any).topics && (currentRoadmap as any).topics.length > 0)) && (
+                       <div className="mb-8">
+                         <h4 className="text-custom-white text-sm uppercase tracking-wider font-extrabold mb-4 border-b border-custom-gray/5 pb-2">
+                           Concepts cl├®s ├á ma├«triser
+                         </h4>
+                         <ul className="space-y-3">
+-                          {rm.topics.map((topic, i) => (
++                          {(currentRoadmap.skills || (currentRoadmap as any).topics || []).map((skill: string, i: number) => (
+                             <li key={i} className="flex items-center gap-3 text-sm text-custom-gray/80">
+                               <span className="w-1.5 h-1.5 bg-custom-amber rounded-full flex-shrink-0" />
+-                              <span>{topic}</span>
++                              <span>{skill}</span>
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
++                    )}
+ 
+-                      {/* Tools & Tech Chips */}
++                    {/* Tools & Tech Chips */}
++                    {currentRoadmap.tools && currentRoadmap.tools.length > 0 && (
+                       <div>
+                         <h4 className="text-custom-white text-sm uppercase tracking-wider font-extrabold mb-4">
+                           Outils & Syst├¿mes cl├®s
+                         </h4>
+                         <div className="flex flex-wrap gap-2.5">
+-                          {rm.tools.map((tool, i) => (
++                          {currentRoadmap.tools.map((tool: string, i: number) => (
+                             <motion.span
+                               key={i}
+                               whileHover={{ scale: 1.08, borderColor: "rgba(252,163,17,0.4)" }}
+@@ -558,8 +568,9 @@ export default function HomePage() {
+                           ))}
+                         </div>
+                       </div>
+-                    </motion.div>
+-                  ))}
++                    )}
++                  </motion.div>
++                )}
+               </AnimatePresence>
+             </motion.div>
+           </div>
+@@ -587,40 +598,35 @@ export default function HomePage() {
+             </p>
+           </motion.div>
+ 
+-          <motion.div 
++          <motion.div
+             variants={staggerContainer}
+             initial="hidden"
+             whileInView="visible"
+             viewport={{ once: true, margin: "-100px" }}
+             className="grid grid-cols-1 md:grid-cols-3 gap-8"
+           >
+-            {testimonials.map((test, index) => (
++            {displayTestimonials.map((test, index) => (
+               <motion.div
+-                key={index}
++                key={test.id || index}
+                 variants={fadeInUp}
+                 whileHover={cardHoverEffect}
+                 className="bg-custom-navy p-8 rounded-3xl border border-custom-gray/10 flex flex-col justify-between transition-all duration-300 cursor-pointer"
+               >
+                 <div className="space-y-4">
+-                  {/* Quote Icon */}
+                   <span className="text-6xl text-custom-amber/20 font-serif leading-none select-none">ÔÇ£</span>
+-                  <p className="text-sm text-custom-gray/70 leading-relaxed italic -mt-6">
+-                    {test.quote}
+-                  </p>
++                  <p className="text-sm text-custom-gray/70 leading-relaxed italic -mt-6">{test.quote}</p>
+                 </div>
+-
+                 <div className="flex items-center gap-4 pt-8 border-t border-custom-gray/5 mt-6">
+-                  {/* Avatar */}
+-                  <div className="w-10 h-10 rounded-full bg-black border border-custom-amber/20 flex items-center justify-center text-custom-amber font-extrabold text-sm">
+-                    {test.avatar}
++                  <div className="w-10 h-10 rounded-full overflow-hidden bg-black border border-custom-amber/20 flex items-center justify-center text-custom-amber font-extrabold text-sm flex-shrink-0">
++                    {test.author_photo_url ? (
++                      <img src={test.author_photo_url} alt={test.author_name} className="w-full h-full object-cover" />
++                    ) : (
++                      test.author_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
++                    )}
+                   </div>
+                   <div>
+-                    <h4 className="text-custom-white font-bold text-sm leading-tight">
+-                      {test.author}
+-                    </h4>
+-                    <p className="text-[10px] text-custom-gray/50 mt-0.5">
+-                      {test.role}
+-                    </p>
++                    <h4 className="text-custom-white font-bold text-sm leading-tight">{test.author_name}</h4>
++                    <p className="text-[10px] text-custom-gray/50 mt-0.5">{test.author_role}</p>
+                   </div>
+                 </div>
+               </motion.div>
+@@ -629,78 +635,74 @@ export default function HomePage() {
+         </div>
+       </section>
+ 
+-      {/* 7. WEBSITE DEVELOPERS SECTION */}
+-      <section id="developers" className="py-24 bg-black border-t border-custom-navy/20 relative">
+-        <div className="absolute right-0 bottom-0 w-[250px] h-[250px] bg-custom-navy/10 blur-[90px] pointer-events-none" />
+-        
+-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+-          <motion.div 
+-            initial={{ opacity: 0, y: 30 }}
+-            whileInView={{ opacity: 1, y: 0 }}
+-            viewport={{ once: true, margin: "-100px" }}
+-            transition={{ duration: 0.5 }}
+-            className="text-center max-w-2xl mx-auto mb-16 space-y-4"
+-          >
+-            <span className="text-xs font-bold uppercase tracking-wider text-custom-amber border-l-2 border-custom-amber px-2">
+-              Cr├®ateurs
+-            </span>
+-            <h2 className="text-3xl sm:text-5xl font-extrabold text-custom-white tracking-tight">
+-              Website Developers
+-            </h2>
+-            <p className="text-sm text-custom-gray/60 leading-relaxed">
+-              La vitrine de l'├®quipe ├®tudiante ayant con├ºu et d├®ploy├® la plateforme web V0 du Club G├®nie Industriel ENIT.
+-            </p>
+-          </motion.div>
++      {/* 7. DEVELOPERS SECTION (DYNAMIC FROM SITE_CONTENT) */}
++      {displayDevs.length > 0 && (
++        <section id="developers" className="py-24 bg-black border-t border-custom-navy/20">
++          <div className="max-w-7xl mx-auto px-6 lg:px-8">
++            <motion.div 
++              initial={{ opacity: 0, y: 30 }}
++              whileInView={{ opacity: 1, y: 0 }}
++              viewport={{ once: true, margin: "-100px" }}
++              transition={{ duration: 0.5 }}
++              className="text-center max-w-2xl mx-auto mb-16 space-y-4"
++            >
++              <span className="text-xs font-bold uppercase tracking-wider text-custom-amber border-l-2 border-custom-amber px-2">
++                ├ëquipe Digital & Tech
++              </span>
++              <h2 className="text-3xl sm:text-5xl font-extrabold text-custom-white tracking-tight">
++                D├®veloppeurs du site
++              </h2>
++              <p className="text-sm text-custom-gray/60 leading-relaxed">
++                Les ing├®nieurs qui ont con├ºu et r├®alis├® la plateforme num├®rique du Club G├®nie Industriel ENIT.
++              </p>
++            </motion.div>
+ 
+-          <motion.div 
+-            variants={staggerContainer}
+-            initial="hidden"
+-            whileInView="visible"
+-            viewport={{ once: true, margin: "-100px" }}
+-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+-          >
+-            {developers.map((dev, index) => (
+-              <motion.div
+-                key={index}
+-                variants={fadeInUp}
+-                whileHover={cardHoverEffect}
+-                className="bg-custom-navy p-8 rounded-3xl border border-custom-gray/10 transition-all duration-300 group text-center flex flex-col items-center justify-between cursor-pointer"
+-              >
+-                <div className="space-y-4 flex flex-col items-center">
+-                  {/* Circle Avatar */}
+-                  <div className="w-20 h-20 rounded-full bg-black border-2 border-custom-gray/10 group-hover:border-custom-amber flex items-center justify-center text-custom-white text-2xl font-black transition-all duration-300">
+-                    {dev.avatar}
+-                  </div>
+-                  <div>
+-                    <h3 className="text-custom-white font-extrabold text-lg tracking-wide">
+-                      {dev.name}
+-                    </h3>
+-                    <p className="text-xs text-custom-amber font-semibold font-mono tracking-wider mt-1">
+-                      {dev.role}
+-                    </p>
++            <motion.div 
++              variants={staggerContainer}
++              initial="hidden"
++              whileInView="visible"
++              viewport={{ once: true, margin: "-100px" }}
++              className="grid grid-cols-1 md:grid-cols-3 gap-8"
++            >
++              {displayDevs.map((dev: any, index: number) => (
++                <motion.div
++                  key={index}
++                  variants={fadeInUp}
++                  whileHover={cardHoverEffect}
++                  className="bg-custom-navy p-8 rounded-3xl border border-custom-gray/10 flex flex-col items-center text-center transition-all duration-300 group"
++                >
++                  <div className="w-20 h-20 rounded-full overflow-hidden bg-black border-2 border-custom-amber/30 mb-5 flex items-center justify-center text-custom-amber font-extrabold text-xl shadow-[0_0_20px_rgba(252,163,17,0.15)] group-hover:border-custom-amber transition-colors">
++                    {dev.photo_url ? (
++                      <img src={dev.photo_url} alt={dev.name} className="w-full h-full object-cover" />
++                    ) : (
++                      dev.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "DEV"
++                    )}
+                   </div>
+-                  <p className="text-xs text-custom-gray/50 leading-relaxed">
+-                    ├ëtudiant en G├®nie Industriel ├á l'ENIT. Passionn├® par l'intersection entre le d├®veloppement de logiciels et l'excellence op├®rationnelle.
++                  <h3 className="text-lg font-bold text-custom-white group-hover:text-custom-amber transition-colors">
++                    {dev.name}
++                  </h3>
++                  <p className="text-xs font-mono text-custom-amber/80 mt-1 uppercase tracking-wider">
++                    {dev.role}
+                   </p>
+-                </div>
+ 
+-                <motion.a
+-                  href={dev.linkedIn}
+-                  target="_blank"
+-                  rel="noopener noreferrer"
+-                  whileHover={{ scale: 1.03, backgroundColor: "#fca311", color: "#000000", borderColor: "#fca311" }}
+-                  whileTap={{ scale: 0.97 }}
+-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-black border border-custom-gray/10 text-custom-gray/80 text-xs font-bold tracking-wider transition-all duration-300 mt-6"
+-                >
+-                  <Linkedin className="w-4 h-4" />
+-                  <span>LinkedIn Profile</span>
+-                  <ArrowUpRight className="w-3.5 h-3.5" />
+-                </motion.a>
+-              </motion.div>
+-            ))}
+-          </motion.div>
+-        </div>
+-      </section>
++                  <div className="flex items-center gap-3 mt-6">
++                    {dev.linkedin && (
++                      <a href={dev.linkedin} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-black text-custom-gray hover:text-custom-amber border border-custom-gray/10 transition-colors">
++                        <Linkedin className="w-4 h-4" />
++                      </a>
++                    )}
++                    {dev.github && (
++                      <a href={dev.github} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-black text-custom-gray hover:text-custom-amber border border-custom-gray/10 transition-colors">
++                        <Github className="w-4 h-4" />
++                      </a>
++                    )}
++                  </div>
++                </motion.div>
++              ))}
++            </motion.div>
++          </div>
++        </section>
++      )}
+ 
+     </div>
+   );
+diff --git a/app/membre/layout/Sidebar.tsx b/app/membre/layout/Sidebar.tsx
+index 1b2b842..4fe64ce 100644
+--- a/app/membre/layout/Sidebar.tsx
++++ b/app/membre/layout/Sidebar.tsx
+@@ -13,6 +13,7 @@ import {
+   CalendarRange,
+   Users,
+   Trophy,
++  ShieldCheck,
+ } from 'lucide-react'
+ 
+ type Profile = Database['public']['Tables']['profiles']['Row'] & {
+@@ -78,7 +79,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
+         })}
+         
+         {isBureauOrAdmin(profile.role) && (
+-          <div className="mt-6 border-t border-[#2a2c2c] px-2 pt-5">
++          <div className="mt-6 border-t border-[#2a2c2c] px-2 pt-5 space-y-1">
+             <div className="flex items-center justify-between mb-3 px-2">
+               <span className="text-[10px] uppercase tracking-wider text-[#666] font-semibold">
+                 Espace Responsable
+@@ -87,6 +88,19 @@ export default function Sidebar({ profile }: { profile: Profile }) {
+                 {profile.role === 'admin' ? 'Admin' : 'Bureau'}
+               </span>
+             </div>
++
++            <Link
++              href="/membre/administration"
++              aria-current={pathname.startsWith('/membre/administration') ? 'page' : undefined}
++              className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 ${
++                pathname.startsWith('/membre/administration')
++                  ? 'bg-[#fca311] text-black shadow-md'
++                  : 'text-[#fca311] bg-[#fca311]/10 hover:bg-[#fca311]/20'
++              }`}
++            >
++              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={2.5} />
++              <span>Administration</span>
++            </Link>
+           </div>
+         )}
+       </nav>
+diff --git a/app/membre/profil/page.tsx b/app/membre/profil/page.tsx
+index dc96802..a446049 100644
+--- a/app/membre/profil/page.tsx
++++ b/app/membre/profil/page.tsx
+@@ -1,20 +1,27 @@
+ import { createClient } from '@/lib/supabase/server'
+-import { getRoleLabel, Role } from '@/lib/types/roles'
++import { redirect } from 'next/navigation'
++import ProfilForm from '@/components/membre/profil/ProfilForm'
+ 
+ type Profile = {
+   id: string
+   first_name: string | null
+   last_name: string | null
+-  role: Role
++  role: 'admin' | 'membre_bureau' | 'membre_actif'
+   pole_id: string | null
+   points_total: number
+   year: string | null
++  avatar_url: string | null
++  is_active: boolean
++  // Extended fields ÔÇö nullable until migration is applied
++  birth_date: string | null
++  phone: string | null
++  linkedin_url: string | null
+   poles: { name: string } | null
++  email?: string
+ }
+ 
+ type PointLog = {
+   id: string
+-  user_id: string
+   reason: string
+   amount: number
+   created_at: string
+@@ -23,69 +30,101 @@ type PointLog = {
+ export default async function ProfilPage() {
+   const supabase = await createClient()
+   const { data: { user } } = await supabase.auth.getUser()
+-  const userId = user?.id
+ 
+-  const [profileRes, pointsLogRes] = await Promise.all([
+-    supabase
++  if (!user) redirect('/login?error=no_user')
++
++  // Use explicit column list instead of '*' to avoid crashing if
++  // migration hasn't been pushed yet ÔÇö new columns default to null
++  // Try fetching profile with extended fields first
++  let rawProfile: any = null
++  const profileQuery = await supabase
++    .from('profiles')
++    .select('id, first_name, last_name, role, pole_id, points_total, year, avatar_url, is_active, birth_date, phone, linkedin_url, poles(name)')
++    .eq('id', user!.id)
++    .maybeSingle()
++
++  if (profileQuery.error) {
++    // If extended query fails due to missing DB columns, fallback to base query
++    const { data: baseData } = await supabase
+       .from('profiles')
+-      .select('*, poles(name)')
+-      .eq('id', userId || '')
+-      .single(),
+-    
+-    supabase
+-      .from('points_log')
+-      .select('*')
+-      .eq('user_id', userId || '')
+-      .order('created_at', { ascending: false })
+-  ])
++      .select('id, first_name, last_name, role, pole_id, points_total, is_active, poles(name)')
++      .eq('id', user!.id)
++      .maybeSingle()
++    rawProfile = baseData
++  } else {
++    rawProfile = profileQuery.data
++  }
++
++  const { data: pointsLogData } = await supabase
++    .from('points_log')
++    .select('id, reason, amount, created_at')
++    .eq('user_id', user!.id)
++    .order('created_at', { ascending: false })
++    .limit(10)
+ 
+-  const typedProfile = profileRes.data as Profile | null
+-  const pointsLog = pointsLogRes.data
++  // Extract fallback values from user_metadata if profiles row has missing fields
++  const meta = user!.user_metadata || {}
++  const fullNameParts = (meta.full_name || meta.name || '').split(' ')
++
++  const profile: Profile = {
++    id: user!.id,
++    first_name: rawProfile?.first_name || meta.first_name || fullNameParts[0] || null,
++    last_name: rawProfile?.last_name || meta.last_name || fullNameParts.slice(1).join(' ') || null,
++    role: (rawProfile?.role as Profile['role']) || (meta.role as Profile['role']) || 'membre_actif',
++    pole_id: rawProfile?.pole_id ?? null,
++    points_total: rawProfile?.points_total ?? 0,
++    year: rawProfile?.year || meta.year || null,
++    avatar_url: rawProfile?.avatar_url || meta.avatar_url || null,
++    is_active: rawProfile?.is_active ?? true,
++    birth_date: rawProfile?.birth_date || meta.birth_date || null,
++    phone: rawProfile?.phone || meta.phone || null,
++    linkedin_url: rawProfile?.linkedin_url || meta.linkedin_url || null,
++    poles: rawProfile?.poles ?? null,
++    email: user!.email,
++  }
++
++  const pointsLog = (pointsLogData ?? []) as PointLog[]
+ 
+   return (
+     <div className="space-y-8 max-w-3xl">
+-      <div>
+-        <h1 className="font-display text-3xl font-bold tracking-tight">Mon Profil</h1>
+-      </div>
+-
+-      <div className="panel-surface rounded-md p-6">
+-        <div className="flex items-center gap-4">
+-          <div className="w-20 h-20 rounded-full bg-bg border border-muted/20 flex items-center justify-center">
+-            <span className="font-display font-bold text-2xl text-accent">
+-              {typedProfile?.first_name?.[0]}{typedProfile?.last_name?.[0]}
+-            </span>
+-          </div>
+-          <div>
+-            <h2 className="font-display text-2xl font-bold">{typedProfile?.first_name} {typedProfile?.last_name}</h2>
+-            <p className="text-muted text-sm">{typedProfile?.poles?.name || 'Membre ENIT'} ┬À {getRoleLabel(typedProfile?.role)} ┬À {typedProfile?.year || 'Ann├®e ?'}</p>
+-          </div>
+-        </div>
+-        
+-        <div className="mt-6 pt-6 border-t border-muted/10 flex items-center justify-between">
+-          <span className="text-sm text-muted uppercase font-mono tracking-wider">Total Points</span>
+-          <span className="font-mono text-3xl font-bold text-accent">{typedProfile?.points_total || 0}</span>
+-        </div>
+-      </div>
++      {/* Profile form (editable fields + avatar) */}
++      <ProfilForm profile={profile} />
+ 
++      {/* Points history ÔÇö read-only */}
+       <div>
+         <h3 className="font-display text-xl font-bold mb-4">Historique des points</h3>
+-        <div className="panel-surface overflow-hidden rounded-md">
+-          {pointsLog && pointsLog.length > 0 ? (
+-            pointsLog.map((log: PointLog) => (
+-              <div key={log.id} className="flex items-center justify-between p-4 border-b border-bg/50 last:border-b-0">
++        <div className="panel-surface overflow-hidden rounded-xl">
++          {pointsLog.length > 0 ? (
++            pointsLog.map((log) => (
++              <div
++                key={log.id}
++                className="flex items-center justify-between p-4 border-b border-[#2a2c2c]/50 last:border-b-0"
++              >
+                 <div>
+-                  <p className="text-sm text-text font-medium">{log.reason}</p>
+-                  <p className="text-xs text-muted font-mono mt-0.5">
+-                    {new Date(log.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
++                  <p className="text-sm text-white font-medium">{log.reason}</p>
++                  <p className="text-xs text-[#666] font-mono mt-0.5">
++                    {new Date(log.created_at).toLocaleDateString('fr-FR', {
++                      day: '2-digit',
++                      month: 'short',
++                      year: 'numeric',
++                      hour: '2-digit',
++                      minute: '2-digit',
++                    })}
+                   </p>
+                 </div>
+-                <span className={`font-mono font-bold text-lg ${log.amount > 0 ? 'text-success' : 'text-danger'}`}>
++                <span
++                  className={`font-mono font-bold text-lg ${
++                    log.amount > 0 ? 'text-green-400' : 'text-red-400'
++                  }`}
++                >
+                   {log.amount > 0 ? '+' : ''}{log.amount}
+                 </span>
+               </div>
+             ))
+           ) : (
+-            <p className="p-4 text-center text-muted text-sm">Aucun mouvement de points enregistr├®.</p>
++            <p className="p-6 text-center text-[#555] text-sm font-mono">
++              Aucun mouvement de points enregistr├®.
++            </p>
+           )}
+         </div>
+       </div>
+diff --git a/components/home/ActivityPhotoCarousel.tsx b/components/home/ActivityPhotoCarousel.tsx
+index 9467f7d..3fc19fc 100644
+--- a/components/home/ActivityPhotoCarousel.tsx
++++ b/components/home/ActivityPhotoCarousel.tsx
+@@ -7,7 +7,7 @@ interface ActivityPhotoCarouselProps {
+   photos: string[];
+   alt?: string;
+   className?: string;
+-  /** Aspect ratio class, e.g. "aspect-video" or "aspect-square". Defaults to aspect-video */
++  /** @deprecated No longer used ÔÇö images display at their natural aspect ratio */
+   aspectRatio?: string;
+ }
+ 
+@@ -38,7 +38,7 @@ export default function ActivityPhotoCarousel({
+   if (!photos || photos.length === 0) {
+     return (
+       <div
+-        className={`${aspectRatio} w-full rounded-2xl bg-gradient-to-br from-[#14213d] to-[#0c0d0d] border border-[#2a2c2c] flex items-center justify-center ${className}`}
++        className={`w-full rounded-2xl bg-gradient-to-br from-[#14213d] to-[#0c0d0d] border border-[#2a2c2c] flex items-center justify-center min-h-[200px] ${className}`}
+       >
+         <ImageIcon className="w-10 h-10 text-[#333]" />
+       </div>
+@@ -46,33 +46,35 @@ export default function ActivityPhotoCarousel({
+   }
+ 
+   return (
+-    <div className={`relative w-full ${aspectRatio} rounded-2xl overflow-hidden bg-black group ${className}`}>
+-      {/* Images */}
+-      {photos.map((url, idx) => (
+-        <img
+-          key={idx}
+-          src={url}
+-          alt={`${alt} ${idx + 1}`}
+-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+-            idx === current ? "opacity-100" : "opacity-0"
+-          }`}
+-        />
+-      ))}
++    <div className={`relative w-full rounded-2xl overflow-hidden bg-black group ${className}`}>
++      {/* Natural-ratio image stack ÔÇö only the current photo takes up space */}
++      <div className="relative">
++        {photos.map((url, idx) => (
++          <img
++            key={idx}
++            src={url}
++            alt={`${alt} ${idx + 1}`}
++            className={`w-full max-h-[70vh] object-contain transition-opacity duration-500 ${
++              idx === current ? "block opacity-100" : "hidden opacity-0"
++            }`}
++          />
++        ))}
++      </div>
+ 
+-      {/* Navigation arrows ÔÇö only shown when multiple photos */}
++      {/* Navigation arrows ÔÇö always visible when multiple photos */}
+       {photos.length > 1 && (
+         <>
+           <button
+             onClick={prev}
+             aria-label="Photo pr├®c├®dente"
+-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
++            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+           >
+             <ChevronLeft className="w-4 h-4" />
+           </button>
+           <button
+             onClick={next}
+             aria-label="Photo suivante"
+-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
++            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+           >
+             <ChevronRight className="w-4 h-4" />
+           </button>
+diff --git a/components/ui/Sidebar.tsx b/components/ui/Sidebar.tsx
+index ef1ce73..f6c1d88 100644
+--- a/components/ui/Sidebar.tsx
++++ b/components/ui/Sidebar.tsx
+@@ -18,8 +18,8 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
+   { id: "projets", label: "Gestion des Projets", icon: FolderGit2 },
+   { id: "activities", label: "Activit├®s du Club", icon: Sparkles },
+   { id: "hero", label: "Hero Carousel", icon: Image },
+-  { id: "contenu", label: "Contenu", icon: FileText, isComingSoon: true },
+-  { id: "temoignages", label: "T├®moignages", icon: MessageSquare, isComingSoon: true },
++  { id: "contenu", label: "Contenu", icon: FileText },
++  { id: "temoignages", label: "T├®moignages", icon: MessageSquare },
+   { id: "parametres", label: "Logo & Marque", icon: Settings },
+ ];
+ 
+@@ -87,11 +87,6 @@ export default function Sidebar({
+                 <Icon className={`w-4 h-4 ${isActive ? "text-custom-amber" : "text-[#777] group-hover:text-white"}`} />
+                 <span>{item.label}</span>
+               </div>
+-              {item.isComingSoon && (
+-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-[#888] font-normal">
+-                  Bient├┤t
+-                </span>
+-              )}
+             </button>
+           );
+         })}
+diff --git a/lib/supabase/database.types.ts b/lib/supabase/database.types.ts
+index f8d4453..f202a75 100644
+--- a/lib/supabase/database.types.ts
++++ b/lib/supabase/database.types.ts
+@@ -15,6 +15,9 @@ export type Database = {
+           year: string | null
+           avatar_url: string | null
+           is_active: boolean
++          birth_date: string | null
++          phone: string | null
++          linkedin_url: string | null
+         }
+         Insert: { id: string } & Partial<Database['public']['Tables']['profiles']['Row']>
+         Update: Partial<Database['public']['Tables']['profiles']['Row']>
+diff --git a/package-lock.json b/package-lock.json
+index 9a7320d..c7f2549 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -13,9 +13,11 @@
+         "@dnd-kit/utilities": "^3.2.2",
+         "@supabase/ssr": "^0.12.3",
+         "@supabase/supabase-js": "^2.110.8",
++        "@types/nodemailer": "^8.0.1",
+         "framer-motion": "^12.42.2",
+         "lucide-react": "^0.459.0",
+         "next": "16.2.10",
++        "nodemailer": "^9.0.5",
+         "react": "19.2.4",
+         "react-dom": "19.2.4",
+         "resend": "^6.18.0"
+@@ -1713,12 +1715,20 @@
+       "version": "20.19.43",
+       "resolved": "https://registry.npmjs.org/@types/node/-/node-20.19.43.tgz",
+       "integrity": "sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==",
+-      "dev": true,
+       "license": "MIT",
+       "dependencies": {
+         "undici-types": "~6.21.0"
+       }
+     },
++    "node_modules/@types/nodemailer": {
++      "version": "8.0.1",
++      "resolved": "https://registry.npmjs.org/@types/nodemailer/-/nodemailer-8.0.1.tgz",
++      "integrity": "sha512-PxpaInm8V1JQDd4j0ds5HfvWQk8JupS1C0Picb96QJsrrRDjBH+DlK7L4ZdNSqNULhiZRQHc40nLVShaGxXAMw==",
++      "license": "MIT",
++      "dependencies": {
++        "@types/node": "*"
++      }
++    },
+     "node_modules/@types/react": {
+       "version": "19.2.17",
+       "resolved": "https://registry.npmjs.org/@types/react/-/react-19.2.17.tgz",
+@@ -5447,6 +5457,15 @@
+         "node": ">=18"
+       }
+     },
++    "node_modules/nodemailer": {
++      "version": "9.0.5",
++      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-9.0.5.tgz",
++      "integrity": "sha512-wvjiKvjczmsN7U/8006JOdXubgBk2XFAbioDMbT+sM7cPs0QrhJTa6KBRX7P5REGGkDcLUz/EarWidb8G8C1jQ==",
++      "license": "MIT-0",
++      "engines": {
++        "node": ">=6.0.0"
++      }
++    },
+     "node_modules/object-assign": {
+       "version": "4.1.1",
+       "resolved": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz",
+@@ -6753,7 +6772,6 @@
+       "version": "6.21.0",
+       "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz",
+       "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==",
+-      "dev": true,
+       "license": "MIT"
+     },
+     "node_modules/unrs-resolver": {
+diff --git a/package.json b/package.json
+index 85bb882..916cc38 100644
+--- a/package.json
++++ b/package.json
+@@ -14,9 +14,11 @@
+     "@dnd-kit/utilities": "^3.2.2",
+     "@supabase/ssr": "^0.12.3",
+     "@supabase/supabase-js": "^2.110.8",
++    "@types/nodemailer": "^8.0.1",
+     "framer-motion": "^12.42.2",
+     "lucide-react": "^0.459.0",
+     "next": "16.2.10",
++    "nodemailer": "^9.0.5",
+     "react": "19.2.4",
+     "react-dom": "19.2.4",
+     "resend": "^6.18.0"
+diff --git a/supabase_setup.sql b/supabase_setup.sql
+index 3bfa4dc..b512a7a 100644
+--- a/supabase_setup.sql
++++ b/supabase_setup.sql
+@@ -9,6 +9,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
+   email TEXT NOT NULL,
+   first_name TEXT,
+   last_name TEXT,
++  full_name TEXT,
++  avatar_url TEXT,
++  year TEXT,
++  birth_date DATE,
++  phone TEXT,
++  linkedin_url TEXT,
++  bio TEXT,
++  age INTEGER,
++  gender TEXT,
++  height NUMERIC(5,2),
++  weight NUMERIC(5,2),
++  fitness_goal TEXT,
++  injuries TEXT,
++  training_availability TEXT,
+   role TEXT DEFAULT 'membre_actif' CHECK (role IN ('admin', 'membre_bureau', 'membre_actif')),
+   created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+@@ -139,4 +153,19 @@ CREATE POLICY "Public Read Access activity-images"
+ CREATE POLICY "Authenticated Upload activity-images"
+   ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'activity-images');
+ 
++-- 7. BUCKET STORAGE AVATARS (Photos de profil membres)
++INSERT INTO storage.buckets (id, name, public)
++VALUES ('avatars', 'avatars', true)
++ON CONFLICT (id) DO NOTHING;
++
++CREATE POLICY "Public Read Access avatars"
++  ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
++
++CREATE POLICY "Authenticated Upload avatars"
++  ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars');
++
++CREATE POLICY "Authenticated Update avatars"
++  ON storage.objects FOR UPDATE USING (bucket_id = 'avatars');
+ 
++-- Refresh PostgREST API schema cache
++NOTIFY pgrst, 'reload schema';

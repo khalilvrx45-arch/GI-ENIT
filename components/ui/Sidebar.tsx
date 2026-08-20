@@ -18,8 +18,8 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { id: "projets", label: "Gestion des Projets", icon: FolderGit2 },
   { id: "activities", label: "Activités du Club", icon: Sparkles },
   { id: "hero", label: "Hero Carousel", icon: Image },
-  { id: "contenu", label: "Contenu", icon: FileText, isComingSoon: true },
-  { id: "temoignages", label: "Témoignages", icon: MessageSquare, isComingSoon: true },
+  { id: "contenu", label: "Contenu", icon: FileText },
+  { id: "temoignages", label: "Témoignages", icon: MessageSquare },
   { id: "parametres", label: "Logo & Marque", icon: Settings },
 ];
 
@@ -87,11 +87,6 @@ export default function Sidebar({
                 <Icon className={`w-4 h-4 ${isActive ? "text-custom-amber" : "text-[#777] group-hover:text-white"}`} />
                 <span>{item.label}</span>
               </div>
-              {item.isComingSoon && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-[#888] font-normal">
-                  Bientôt
-                </span>
-              )}
             </button>
           );
         })}
