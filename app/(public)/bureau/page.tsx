@@ -49,7 +49,7 @@ export default function BureauPage() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
-  const [activeTab, setActiveTab] = useState<"activites" | "projets">("activites");
+  const [activeTab, setActiveTab] = useState<"activites" | "projets" | "administration">("activites");
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);

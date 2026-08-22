@@ -4,11 +4,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { Bell, CheckCheck, ExternalLink, Sparkles, MessageSquare, ShieldCheck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { Database } from "@/lib/supabase/database.types";
 import { useI18n } from "@/lib/i18n/context";
 import Link from "next/link";
 
-type Notification = Database["public"]["Tables"]["notifications"]["Row"];
+type Notification = {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  link: string | null;
+  created_at: string;
+};
 
 export default function NotificationBell({ userId }: { userId: string }) {
   const { t } = useI18n();
