@@ -28,7 +28,7 @@ export default async function VisitDetailPage({
     .eq("type", "visit")
     .single();
 
-  const activity = activityRes.data as Activity | null;
+  const activity = activityRes.data as any;
 
   if (!activity) notFound();
 
@@ -79,7 +79,7 @@ export default async function VisitDetailPage({
             </span>
           )}
           <span className="font-mono text-sm">
-            {formatActivityDate(activity.date_start || activity.date || "")}
+            {formatActivityDate(activity.date_start || "")}
           </span>
           {activity.location && (
             <span className="inline-flex items-center gap-1.5 text-sm">
@@ -91,10 +91,10 @@ export default async function VisitDetailPage({
       </div>
 
       {/* Cover Image */}
-      {(activity.cover_image_url || activity.image_url) && (
+      {activity.image_url && (
         <div className="w-full h-64 md:h-96 rounded-3xl overflow-hidden border border-[#2a2c2c] relative shadow-2xl">
           <img
-            src={activity.cover_image_url || activity.image_url || ""}
+            src={activity.image_url}
             alt={activity.title}
             className="w-full h-full object-cover"
           />

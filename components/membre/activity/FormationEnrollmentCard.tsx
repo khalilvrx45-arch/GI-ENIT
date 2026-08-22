@@ -21,7 +21,7 @@ type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type Registration = Database["public"]["Tables"]["event_registrations"]["Row"];
 
 interface FormationEnrollmentCardProps {
-  activity: Activity;
+  activity: any;
   initialRegistration: Registration | null;
   initialRegisteredCount: number;
   userId: string;
@@ -44,7 +44,7 @@ export default function FormationEnrollmentCard({
   const isFull = capacity ? registeredCount >= capacity : false;
 
   // Check if formation is past or upcoming
-  const formationDate = new Date(activity.date_start || activity.date || "");
+  const formationDate = new Date(activity.date_start || "");
   const isPast = !isNaN(formationDate.getTime()) && formationDate < new Date();
 
   const handleRegister = async () => {

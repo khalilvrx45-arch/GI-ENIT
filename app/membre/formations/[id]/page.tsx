@@ -42,12 +42,8 @@ export default async function FormationDetailPage({
     } catch (_) {}
   }
 
-  const activity = {
-    ...rawActivity,
-    trainer_name: rawActivity.trainer_name || metadata.trainer_name || null,
-    prerequisites: rawActivity.prerequisites || metadata.prerequisites || null,
-    training_material_url: rawActivity.training_material_url || metadata.training_material_url || null,
-  } as Activity;
+  // Use rawActivity (any) to avoid strict DB type issues with extra columns
+  const activity = rawActivity as any;
 
   // Récupère l'inscription de l'utilisateur courant
   const registrationRes = await supabase
@@ -96,7 +92,7 @@ export default async function FormationDetailPage({
             </span>
           )}
           <span className="font-mono text-sm">
-            {formatActivityDate(activity.date_start || activity.date || "")}
+            {formatActivityDate(activity.date_start || "")}
           </span>
           {activity.location && (
             <span className="inline-flex items-center gap-1.5 text-sm">
@@ -108,10 +104,10 @@ export default async function FormationDetailPage({
       </div>
 
       {/* Cover Image */}
-      {(activity.cover_image_url || activity.image_url) && (
+      {activity.image_url && (
         <div className="w-full h-64 md:h-96 rounded-3xl overflow-hidden border border-[#2a2c2c] relative shadow-2xl">
           <img
-            src={activity.cover_image_url || activity.image_url || ""}
+            src={activity.image_url}
             alt={activity.title}
             className="w-full h-full object-cover"
           />

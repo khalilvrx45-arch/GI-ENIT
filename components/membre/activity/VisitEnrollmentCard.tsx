@@ -22,7 +22,7 @@ type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type Registration = Database["public"]["Tables"]["event_registrations"]["Row"];
 
 interface VisitEnrollmentCardProps {
-  activity: Activity;
+  activity: any;
   initialRegistration: Registration | null;
   initialRegisteredCount: number;
   userId: string;
@@ -47,7 +47,7 @@ export default function VisitEnrollmentCard({
   const percentFilled = capacity ? Math.min(100, Math.round((registeredCount / capacity) * 100)) : 0;
 
   // Check if visit is past or upcoming
-  const visitDate = new Date(activity.date_start || activity.date || "");
+  const visitDate = new Date(activity.date_start || "");
   const isPast = !isNaN(visitDate.getTime()) && visitDate < new Date();
 
   const handleRegister = async () => {
