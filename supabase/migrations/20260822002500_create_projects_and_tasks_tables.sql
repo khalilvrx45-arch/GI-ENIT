@@ -11,6 +11,14 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
+-- 1.5 Poles table fallback
+CREATE TABLE IF NOT EXISTS public.poles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+);
+
 -- 2. Projects Table
 CREATE TABLE IF NOT EXISTS public.projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

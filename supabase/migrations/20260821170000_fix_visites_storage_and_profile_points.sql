@@ -9,12 +9,25 @@ ALTER TABLE public.activities
   ADD COLUMN IF NOT EXISTS date_start TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS date_end TIMESTAMPTZ;
 
+-- 1.2 Ensure profiles table has points_total column
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS points_total INTEGER DEFAULT 0;
+
 -- Sync existing columns
 UPDATE public.activities
 SET 
   cover_image_url = COALESCE(cover_image_url, image_url),
   date_start = COALESCE(date_start, date),
   type = COALESCE(type, CASE WHEN category = 'Visite' THEN 'visit' WHEN category = 'Formation' THEN 'formation' ELSE 'event' END);
+
+-- 1.5 Auto-create Storage Buckets if missing
+INSERT INTO storage.buckets (id, name, public)
+VALUES 
+  ('cvs', 'cvs', true),
+  ('avatars', 'avatars', true),
+  ('resources', 'resources', true),
+  ('activities', 'activities', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- 2. Setup Storage RLS Policies for buckets: resources, avatars, cvs, activities
 DROP POLICY IF EXISTS "Public Read resources" ON storage.objects;

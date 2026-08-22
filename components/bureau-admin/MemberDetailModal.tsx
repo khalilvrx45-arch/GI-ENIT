@@ -141,6 +141,9 @@ export default function MemberDetailModal({
 
       setSuccessMsg('Fiche membre mise à jour avec succès.')
       onMemberUpdated()
+      setTimeout(() => {
+        window.location.reload()
+      }, 500)
     } catch (err: any) {
       setErrorMsg(err.message)
     } finally {

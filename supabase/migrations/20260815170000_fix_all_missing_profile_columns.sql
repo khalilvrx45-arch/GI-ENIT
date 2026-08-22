@@ -13,7 +13,8 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS injuries TEXT,
   ADD COLUMN IF NOT EXISTS training_availability TEXT,
   ADD COLUMN IF NOT EXISTS birth_date DATE,
-  ADD COLUMN IF NOT EXISTS linkedin_url TEXT;
+  ADD COLUMN IF NOT EXISTS linkedin_url TEXT,
+  ADD COLUMN IF NOT EXISTS points_total INTEGER DEFAULT 0;
 
 -- Reload PostgREST schema cache immediately
 NOTIFY pgrst, 'reload schema';

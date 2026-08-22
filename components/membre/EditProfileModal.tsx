@@ -81,14 +81,40 @@ export default function EditProfileModal({
 }: EditProfileModalProps) {
   const supabase = createClient();
 
-  // Form states
-  const [firstName, setFirstName] = useState(profile.first_name || "");
-  const [lastName, setLastName] = useState(profile.last_name || "");
-  const [phone, setPhone] = useState(profile.phone || "");
-  const [classe, setClasse] = useState(profile.classe || "1AGI1");
+  // Form states initialized dynamically
+  const [firstName, setFirstName] = useState(profile?.first_name || "");
+  const [lastName, setLastName] = useState(profile?.last_name || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
+  const [classe, setClasse] = useState(profile?.classe || "1AGI1");
   const [statutMembre, setStatutMembre] = useState<"actif" | "senior" | "alumni">(
-    profile.statut_membre || "actif"
+    profile?.statut_membre || "actif"
   );
+
+  // Sync state when profile prop changes/loads
+  React.useEffect(() => {
+    if (profile) {
+      if (profile.first_name) setFirstName(profile.first_name);
+      if (profile.last_name) setLastName(profile.last_name);
+      if (profile.phone) setPhone(profile.phone);
+      if (profile.classe) setClasse(profile.classe);
+      if (profile.statut_membre) setStatutMembre(profile.statut_membre);
+      if (profile.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+        setAvatarPreview(profile.avatar_url);
+      }
+      if (profile.cv_url) setCvUrl(profile.cv_url);
+      if (profile.linkedin_url) setLinkedinUrl(profile.linkedin_url);
+      if (profile.prepa_section) setPrepaSection(profile.prepa_section);
+      if (profile.prepa_etablissement) {
+        const isKnown = PREPA_SCHOOLS.includes(profile.prepa_etablissement);
+        setPrepaSchoolSelect(isKnown ? profile.prepa_etablissement : "Autre");
+        if (!isKnown) setPrepaSchoolOther(profile.prepa_etablissement);
+      }
+      if (profile.rang_concours !== null && profile.rang_concours !== undefined) {
+        setRangConcours(String(profile.rang_concours));
+      }
+    }
+  }, [profile]);
 
   // Bonus fields
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url || null);
@@ -301,8 +327,8 @@ export default function EditProfileModal({
       setSuccess("Profil mis à jour avec succès !");
       setTimeout(() => {
         onProfileUpdated();
-        onClose();
-      }, 700);
+        window.location.reload();
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue lors de l'enregistrement.");
     } finally {

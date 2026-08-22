@@ -20,7 +20,10 @@ export default function CalendarClient({ initialActivities }: { initialActivitie
 
   const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 
-  const activitiesThisMonth = initialActivities.filter(a => {
+  const activities = initialActivities || []
+
+  const activitiesThisMonth = activities.filter(a => {
+    if (!a?.date_start) return false
     const d = new Date(a.date_start)
     return d.getFullYear() === year && d.getMonth() === month
   })

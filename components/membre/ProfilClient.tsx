@@ -261,14 +261,27 @@ export default function ProfilClient({
       </div>
 
       {/* Edit Profile Modal */}
-      {initialProfile && (
-        <EditProfileModal
-          isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          profile={initialProfile}
-          onProfileUpdated={handleProfileUpdated}
-        />
-      )}
+      <EditProfileModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        profile={(initialProfile || {
+          id: "",
+          email: userEmail,
+          first_name: "",
+          last_name: "",
+          phone: "",
+          classe: "1AGI1",
+          statut_membre: "actif",
+          avatar_url: null,
+          cv_url: null,
+          linkedin_url: null,
+          prepa_section: null,
+          prepa_etablissement: null,
+          rang_concours: null,
+          points_total: 0,
+        }) as ProfileData}
+        onProfileUpdated={handleProfileUpdated}
+      />
     </div>
   );
 }

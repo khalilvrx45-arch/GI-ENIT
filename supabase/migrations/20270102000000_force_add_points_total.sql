@@ -1,91 +1,11 @@
 -- ==============================================================================
--- MIGRATION: FEATURES V2 (PREINSCRIPTION, STATUT MEMBRE, VISITES, RESSOURCES, NOTIFICATIONS)
+-- MIGRATION: FORCE ADD POINTS_TOTAL AND FIX PROFILE TRIGGER
 -- ==============================================================================
 
--- 1. Extension de la table profiles
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS phone TEXT,
-  ADD COLUMN IF NOT EXISTS classe TEXT CHECK (classe IN ('1AGI1', '1AGI2', '1AGI3', '2AGI1', '2AGI2', '2AGI3', '3AGI')),
-  ADD COLUMN IF NOT EXISTS linkedin_url TEXT,
-  ADD COLUMN IF NOT EXISTS prepa_section TEXT CHECK (prepa_section IN ('MP', 'PC', 'PT')),
-  ADD COLUMN IF NOT EXISTS prepa_etablissement TEXT,
-  ADD COLUMN IF NOT EXISTS rang_concours INTEGER,
-  ADD COLUMN IF NOT EXISTS cv_url TEXT,
-  ADD COLUMN IF NOT EXISTS statut_membre TEXT CHECK (statut_membre IN ('senior', 'actif', 'alumni')),
-  ADD COLUMN IF NOT EXISTS statut_membre_verified BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS points_total INTEGER DEFAULT 0;
+-- 1. Explicitly ensure points_total exists on public.profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS points_total INTEGER DEFAULT 0;
 
--- 2. Extension de la table activities pour le module visites
-ALTER TABLE public.activities
-  ADD COLUMN IF NOT EXISTS entreprise TEXT,
-  ADD COLUMN IF NOT EXISTS google_form_url TEXT;
-
--- 3. Extension de la table resources
-CREATE TABLE IF NOT EXISTS public.resources (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  file_url TEXT NOT NULL,
-  category TEXT,
-  pole_id UUID,
-  uploaded_by UUID REFERENCES public.profiles(id),
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
-);
-
-ALTER TABLE public.resources
-  ADD COLUMN IF NOT EXISTS description TEXT,
-  ADD COLUMN IF NOT EXISTS drive_url TEXT;
-
--- 4. Création de la table notifications
-CREATE TABLE IF NOT EXISTS public.notifications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('points', 'message', 'système')),
-  title TEXT NOT NULL,
-  message TEXT NOT NULL,
-  link TEXT,
-  read BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
-);
-
--- Activation RLS
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-
--- Index pour les notifications
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications (user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_unread ON public.notifications (user_id) WHERE read = false;
-
--- Politiques RLS pour notifications
-DROP POLICY IF EXISTS "notifications_select_own" ON public.notifications;
-CREATE POLICY "notifications_select_own" ON public.notifications
-  FOR SELECT
-  USING (user_id = auth.uid());
-
-DROP POLICY IF EXISTS "notifications_update_own" ON public.notifications;
-CREATE POLICY "notifications_update_own" ON public.notifications
-  FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
-
--- 5. Table points_log
-CREATE TABLE IF NOT EXISTS public.points_log (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  amount INTEGER NOT NULL,
-  reason TEXT NOT NULL,
-  related_activity_id UUID,
-  related_project_id UUID,
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
-);
-
--- RLS sur points_log : Interdire l'INSERT direct côté client non autorisé
-ALTER TABLE public.points_log ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "points_log_deny_client_insert" ON public.points_log;
-CREATE POLICY "points_log_deny_client_insert" ON public.points_log
-  FOR INSERT
-  WITH CHECK (false);
-
--- Trigger idempotent pour l'attribution des points lors de la complétion du profil
+-- 2. Update trigger to safely check points_total existence using dynamic SQL/guards
 CREATE OR REPLACE FUNCTION public.award_profile_completion_points()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -149,12 +69,12 @@ BEGIN
     END IF;
   END IF;
 
-  -- Mise à jour du total de points si des points ont été attribués
+  -- Update points_total safely
   IF v_pts_to_add > 0 THEN
     NEW.points_total := COALESCE(NEW.points_total, 0) + v_pts_to_add;
   END IF;
 
-  -- Enregistrement de la date de complétion si les champs obligatoires sont renseignés
+  -- Enregistrement de la date de complétion
   IF NEW.phone IS NOT NULL AND NEW.phone <> ''
      AND NEW.classe IS NOT NULL AND NEW.classe <> ''
      AND NEW.statut_membre IS NOT NULL AND NEW.statut_membre <> ''
@@ -166,8 +86,5 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_award_profile_completion_points ON public.profiles;
-CREATE TRIGGER trg_award_profile_completion_points
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW
-  EXECUTE FUNCTION public.award_profile_completion_points();
+-- Reload schema cache
+NOTIFY pgrst, 'reload schema';

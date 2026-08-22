@@ -14,7 +14,7 @@ export default function LeaderboardClient({
   currentUserId: string 
 }) {
   const supabase = createClient()
-  const [entries, setEntries] = useState(initialLeaderboard)
+  const [entries, setEntries] = useState<LeaderboardEntry[]>(initialLeaderboard || [])
 
   useEffect(() => {
     // Abonnement Realtime sur la table profiles
@@ -39,8 +39,9 @@ export default function LeaderboardClient({
     return () => { supabase.removeChannel(channel) }
   }, [supabase])
 
-  const top3 = entries.slice(0, 3)
-  const rest = entries.slice(3)
+  const safeEntries = entries || []
+  const top3 = safeEntries.slice(0, 3)
+  const rest = safeEntries.slice(3)
   
   // Couleurs du podium
   const podiumStyles = [

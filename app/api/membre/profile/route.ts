@@ -51,15 +51,31 @@ export async function PUT(request: Request) {
         : null,
     };
 
-    const { data: updatedProfile, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("profiles")
       .update(updatePayload)
-      .eq("id", user.id)
-      .select("*, poles(name)")
-      .single();
+      .eq("id", user.id);
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    let updatedProfile = null;
+    const { data: pData, error: pError } = await supabase
+      .from("profiles")
+      .select("*, poles(name)")
+      .eq("id", user.id)
+      .single();
+
+    if (pError) {
+      const { data: fallbackData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      updatedProfile = fallbackData;
+    } else {
+      updatedProfile = pData;
     }
 
     return NextResponse.json({ success: true, profile: updatedProfile });
