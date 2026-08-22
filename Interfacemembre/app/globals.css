@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+:root {
+  --color-bg: #040A17;
+  --color-card: #0C1426;
+  --color-surface: #101C34;
+  --color-accent: #B58C2A;
+  --color-accent-light: #E5C66A;
+  --color-steel: #2F5C9F;
+  --color-text: #F3F6FD;
+  --color-muted: #91A3BE;
+  --color-border: rgba(181, 140, 42, 0.2);
+}
+
+body {
+  background-color: var(--color-bg);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(23, 53, 117, 0.28) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(181, 140, 42, 0.12) 0px, transparent 50%),
+    linear-gradient(to right, rgba(181, 140, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(181, 140, 42, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  color: var(--color-text);
+  font-family: var(--font-body), sans-serif;
+  overflow-x: hidden;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #f5de96 0%, #b58c2a 50%, #7e6219 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-steel-gradient {
+  background: linear-gradient(135deg, #5a8fd8 0%, #2f5c9f 50%, #1c3768 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-panel {
+  background: rgba(12, 20, 38, 0.76);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(16, 28, 52, 0.9);
+  border-color: rgba(181, 140, 42, 0.42);
+  box-shadow: 0 10px 30px -14px rgba(181, 140, 42, 0.38);
+  transform: translateY(-3px);
+}
+
+.industrial-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.industrial-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 16% 24%, rgba(47, 92, 159, 0.28), transparent 33%),
+    radial-gradient(circle at 78% 78%, rgba(181, 140, 42, 0.2), transparent 28%);
+}
+
+.industrial-grid {
+  position: relative;
+}
+
+.industrial-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(to right, rgba(47, 92, 159, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(47, 92, 159, 0.16) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 45%, transparent 95%);
+}
+
+.panel-surface {
+  background: linear-gradient(145deg, rgba(12, 20, 38, 0.88), rgba(7, 13, 29, 0.94));
+  border: 1px solid rgba(181, 140, 42, 0.16);
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.95);
+}
+
+.panel-interactive {
+  transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.panel-interactive:hover {
+  border-color: rgba(181, 140, 42, 0.38);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -20px rgba(181, 140, 42, 0.35);
+}
+
+.scanline-overlay {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(181, 140, 42, 0.03),
+    rgba(181, 140, 42, 0.03) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  .industrial-grid::after {
+    background-size: 24px 24px;
+    opacity: 0.14;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(181, 140, 42, 0.24);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(181, 140, 42, 0.5);
+}
