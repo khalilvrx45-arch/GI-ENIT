@@ -60,7 +60,7 @@ export async function GET() {
         .select(`
           *,
           poles (id, name),
-          lead:profiles!projects_lead_id_fkey (id, first_name, last_name, avatar_url),
+          lead:profiles!lead_id (id, first_name, last_name, avatar_url),
           project_members (
             user_id,
             profiles (id, first_name, last_name, avatar_url, role)
@@ -68,7 +68,7 @@ export async function GET() {
         `)
         .order("created_at", { ascending: false }),
 
-      (client as any).from("poles").select("id, name, slug").order("name"),
+      (client as any).from("poles").select("id, name, color, icon").order("name"),
 
       (client as any)
         .from("profiles")

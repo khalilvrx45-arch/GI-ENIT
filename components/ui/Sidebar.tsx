@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Mail, Users, FileText, MessageSquare, Settings, LogOut, Image, Sparkles, FolderGit2, X } from "lucide-react";
+import Link from "next/link";
+import { Mail, Users, FileText, MessageSquare, Settings, LogOut, Image, Sparkles, FolderGit2, X, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 
@@ -63,7 +64,24 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+        <Link
+          href="/"
+          className="flex items-center gap-3 px-3.5 py-3 mb-2 rounded-xl bg-black/40 hover:bg-black/80 border border-[#2a2c2c] hover:border-custom-amber/40 transition-all group cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#121414] border border-custom-amber/40 p-1 flex items-center justify-center shrink-0 group-hover:border-custom-amber">
+            <img src={logoUrl} alt="CGI ENIT" className="w-full h-full object-contain" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-white font-bold text-xs font-mono tracking-wide truncate group-hover:text-custom-amber transition-colors">
+              CGI ENIT Admin
+            </span>
+            <span className="text-[10px] text-custom-amber/80 flex items-center gap-1 font-medium">
+              <Globe className="w-3 h-3" /> Voir le site
+            </span>
+          </div>
+        </Link>
+
+        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#666]">
           Navigation Admin
         </div>
 

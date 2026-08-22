@@ -593,23 +593,91 @@ export default function MemberManagementHub({ currentProfile }: MemberManagement
                       </td>
                       <td className="py-3.5 px-4 font-bold text-[#aaa]">{m.year || 'N/A'}</td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#121414] border border-[#333535] text-[10px] font-bold text-[#ccc]">
-                          {getRoleLabel(m.role)}
-                        </span>
+                        {userIsAdmin ? (
+                          <select
+                            value={m.role || 'membre_actif'}
+                            onChange={async (e) => {
+                              const newRole = e.target.value
+                              try {
+                                const res = await fetch('/api/admin/members', {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ memberId: m.id, newRole }),
+                                })
+                                if (res.ok) {
+                                  fetchMembers()
+                                } else {
+                                  const errData = await res.json()
+                                  alert(errData.error || 'Erreur lors du changement de rôle.')
+                                }
+                              } catch (err: any) {
+                                alert(err.message)
+                              }
+                            }}
+                            className="bg-[#121414] border border-[#333535] focus:border-[#fca311] rounded-lg py-1 px-2 text-[10px] font-bold text-white outline-none cursor-pointer"
+                          >
+                            <option value="membre_actif">Membre Actif</option>
+                            <option value="membre_bureau">Membre Bureau</option>
+                            <option value="admin">Administrateur</option>
+                          </select>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#121414] border border-[#333535] text-[10px] font-bold text-[#ccc]">
+                            {getRoleLabel(m.role)}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4">
-                        {m.is_active === false || m.status_flag === 'inactif' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold">
-                            Inactif
-                          </span>
-                        ) : m.status_flag === 'a_relancer' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold">
-                            À relancer
-                          </span>
+                        {userIsAdmin ? (
+                          <select
+                            value={m.status_flag || (m.is_active === false ? 'inactif' : 'normal')}
+                            onChange={async (e) => {
+                              const flag = e.target.value
+                              try {
+                                const res = await fetch('/api/admin/members', {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    memberId: m.id,
+                                    status_flag: flag,
+                                    is_active: flag !== 'inactif',
+                                  }),
+                                })
+                                if (res.ok) {
+                                  fetchMembers()
+                                } else {
+                                  const errData = await res.json()
+                                  alert(errData.error || 'Erreur lors du changement de statut.')
+                                }
+                              } catch (err: any) {
+                                alert(err.message)
+                              }
+                            }}
+                            className={`border rounded-lg py-1 px-2 text-[10px] font-bold outline-none cursor-pointer ${
+                              m.is_active === false || m.status_flag === 'inactif'
+                                ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                                : m.status_flag === 'a_relancer'
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                : 'bg-green-500/10 text-green-400 border-green-500/30'
+                            }`}
+                          >
+                            <option value="normal" className="bg-[#121414] text-green-400">Actif</option>
+                            <option value="a_relancer" className="bg-[#121414] text-amber-400">À relancer</option>
+                            <option value="inactif" className="bg-[#121414] text-red-400">Inactif</option>
+                          </select>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold">
-                            Actif
-                          </span>
+                          m.is_active === false || m.status_flag === 'inactif' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold">
+                              Inactif
+                            </span>
+                          ) : m.status_flag === 'a_relancer' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold">
+                              À relancer
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold">
+                              Actif
+                            </span>
+                          )
                         )}
                       </td>
                       <td className="py-3.5 px-4 font-extrabold text-[#fca311]">{m.points_total || 0} pts</td>

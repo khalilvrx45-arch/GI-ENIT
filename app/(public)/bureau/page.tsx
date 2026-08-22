@@ -13,6 +13,9 @@ import Toast, { ToastMessage } from "@/components/ui/Toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import PostCreatorModal from "@/components/admin/PostCreatorModal";
 import ProjectManager from "@/components/admin/ProjectManager";
+import MemberManagementHub from "@/components/bureau-admin/MemberManagementHub";
+import EditProfileModal from "@/components/membre/EditProfileModal";
+import { User as UserIcon } from "lucide-react";
 
 interface Activity {
   id: string;
@@ -72,19 +75,23 @@ export default function BureauPage() {
   };
   const [modalConfig, setModalConfig] = useState<any>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
   // Auth guard
   useEffect(() => {
     async function checkAuth() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { router.push("/login"); return; }
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
         const role = profile?.role || "";
         if (role !== "bureau" && role !== "membre_bureau" && role !== "admin") {
           router.push(role === "admin" ? "/admin" : "/dashboard");
           return;
         }
         setCurrentUser(user);
+        setUserProfile(profile || { id: user.id, email: user.email });
       } catch { router.push("/login"); }
       finally { setLoadingUser(false); }
     }
@@ -210,7 +217,7 @@ export default function BureauPage() {
 
   const handleLogout = async () => { await supabase.auth.signOut(); router.push("/login"); };
 
-  const myActivities = activities.filter(a => a.created_by === currentUser?.id);
+  const myActivities = activities;
   const published = myActivities.filter(a => a.status === "published").length;
   const drafts = myActivities.filter(a => a.status === "draft").length;
 
@@ -247,6 +254,13 @@ export default function BureauPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsEditProfileOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#fca311]/10 border border-[#fca311]/30 text-[#fca311] hover:bg-[#fca311]/20 font-bold text-xs transition-colors cursor-pointer"
+          >
+            <UserIcon className="w-3.5 h-3.5" />
+            Mon Profil
+          </button>
           <a href="/" className="text-xs text-[#666] hover:text-white transition-colors">← Site public</a>
           <button onClick={handleLogout} className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors font-semibold">
             <LogOut className="w-3.5 h-3.5" /> Déconnexion
@@ -260,10 +274,11 @@ export default function BureauPage() {
           {[
             { id: "activites", label: "Activités du Club", icon: Sparkles },
             { id: "projets", label: "Gestion des Projets", icon: FolderGit2 },
+            { id: "administration", label: "Gestion des Membres & Présences", icon: Briefcase },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as "activites" | "projets")}
+              onClick={() => setActiveTab(id as any)}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
                 activeTab === id
                   ? "border-[#fca311] text-[#fca311] bg-[#fca311]/5"
@@ -278,6 +293,18 @@ export default function BureauPage() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+        {/* ADMINISTRATION HUB TAB */}
+        {activeTab === "administration" && (
+          <MemberManagementHub
+            currentProfile={{
+              id: currentUser?.id,
+              role: currentUser?.user_metadata?.role || "membre_bureau",
+              first_name: currentUser?.user_metadata?.first_name || "Bureau",
+              email: currentUser?.email,
+            }}
+          />
+        )}
+
         {/* PROJETS TAB */}
         {activeTab === "projets" && <ProjectManager />}
 
@@ -302,7 +329,7 @@ export default function BureauPage() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2c2c]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#fca311]" />
-              <h2 className="font-bold text-sm">Mes activités</h2>
+              <h2 className="font-bold text-sm">Activités du club</h2>
             </div>
             <button
               onClick={openCreate}
@@ -396,6 +423,21 @@ export default function BureauPage() {
           fetchActivities();
         }}
       />
+      {userProfile && (
+        <EditProfileModal
+          isOpen={isEditProfileOpen}
+          onClose={() => setIsEditProfileOpen(false)}
+          profile={userProfile}
+          onProfileUpdated={async () => {
+            const { data: updated } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", userProfile.id)
+              .maybeSingle();
+            if (updated) setUserProfile(updated);
+          }}
+        />
+      )}
     </div>
   );
 }
