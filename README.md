@@ -3,7 +3,7 @@
 Plateforme officielle du **Club Génie Industriel de l'ENIT** (École Nationale d'Ingénieurs de Tunis). 
 Le projet comprend le site vitrine du club, un espace membre sécurisé et un terminal d'administration dédié (*Kinetic Forge*).
 
-🔗 **Production** : [gi-enit.vercel.app](https://gi-enit.vercel.app)
+🔗 **Production** : [gi-platform-xi.vercel.app](https://gi-platform-xi.vercel.app)
 
 ---
 
@@ -24,7 +24,7 @@ Le projet comprend le site vitrine du club, un espace membre sécurisé et un te
 | Route | Rôle & Description |
 |---|---|
 | `/` | **Page d'accueil publique** : Vitrine du club, présentation du bureau, événements, témoignages et footer. |
-| `/login` | **Page de connexion** : Authentification sécurisée (l'inscription publique `/signup` a été supprimée). |
+| `/login` | **Page de connexion** : Authentification sécurisée. |
 | `/invite/[token]` | **Page d'intégration sur invitation** : Formulaire sécurisé permettant à un membre invité de choisir son mot de passe et finaliser son profil. |
 | `/admin` | **Terminal d'administration** : Interface complète réservée aux Admins (Invitations, Membres, KPIs et paramétrages). |
 | `/dashboard` | **Espace Membre Actif** : Tableau de bord pour les membres du club. |
@@ -40,17 +40,13 @@ Le projet comprend le site vitrine du club, un espace membre sécurisé et un te
 
 ### 🛡️ 2. Terminal Admin (*Kinetic Forge Design*)
 - **Gestion des Invitations** :
-  - Envoi d'invitations avec attribution du rôle (*Active Member* ou *Board Member*) et durée de validité (3, 7 ou 14 jours).
-  - Bouton **`LINK`** : Copie instantanée du lien d'invitation unique dans le presse-papier pour envoi direct.
+  - Envoi d'invitations avec attribution du rôle (*Active Member* ou *Board Member*) et durée de validité.
+  - Bouton **`LINK`** : Copie instantanée du lien d'invitation unique.
   - Suivi des statuts (*Accepted*, *Pending*, *Expired*, *Cancelled*).
-  - Réexpédition, annulation et suppression définitive des invitations inactives des archives.
 - **Gestion des Membres** :
   - Recherche dynamique en temps réel par nom, email ou rôle.
   - Modification instantanée du rôle d'un membre (*Membre Actif*, *Membre Bureau*, *Admin*).
   - Suppression de membre avec modale de confirmation.
-- **UI / UX** :
-  - Cartes KPI avec jauges de progression mécaniques.
-  - Système de notifications Toast et modales de confirmation réutilisables.
 
 ---
 
@@ -102,10 +98,8 @@ La base de données repose sur 2 tables principales avec Row Level Security (RLS
 ## 🔑 Configuration de l'Environnement (`.env.local`)
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://lndxakrjbnpjryzxxmcw.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon_publique
-
-# Optionnel (pour envoi automatique via Supabase Auth Admin)
 SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_secrete
 ```
 
@@ -115,7 +109,7 @@ SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_secrete
 
 1. **Cloner et installer les dépendances**
    ```bash
-   git clone https://github.com/khalilvrx45-arch/GI-ENIT.git
+   git clone https://github.com/SeifElouaer/GI-ENIT.git
    cd GI-ENIT
    npm install
    ```
@@ -126,17 +120,19 @@ SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_secrete
    ```
    Accès local : [http://localhost:3000](http://localhost:3000)
 
-3. **Mettre à jour le schéma Supabase**
-   ```bash
-   npx supabase@latest db push
-   ```
-
 ---
 
-## 🌳 Workflow Git
+## 🌳 Workflow Git & Branches
 
-- **`main`** : Branche de **production** (déploiement automatique sur Vercel).
-- **`dev`** : Branche principale de **développement**.
+- **`main`** : Branche principale du projet.
+- **`dev`** : Branche active de développement (utilisée pour les rebases et pré-déploiements).
+
+Pour pousser des modifications sur la branche `dev` :
+```bash
+git add .
+git commit -m "Expliciter les modifications"
+git push origin dev
+```
 
 ---
 
